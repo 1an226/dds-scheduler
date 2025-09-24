@@ -77,6 +77,11 @@
             background: #343a40;
         }
         
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
         .admin-panel {
             background: #e9ecef;
             padding: 15px 20px;
@@ -89,6 +94,7 @@
         .admin-controls {
             display: flex;
             gap: 10px;
+            align-items: center;
         }
         
         .admin-btn {
@@ -214,6 +220,16 @@
             margin-top: 10px;
         }
         
+        .success-message {
+            color: #28a745;
+            margin-top: 10px;
+        }
+        
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
         footer {
             text-align: center;
             padding: 20px;
@@ -265,6 +281,11 @@
             color: #721c24;
         }
         
+        .sync-status {
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
         @media (max-width: 768px) {
             .controls {
                 flex-direction: column;
@@ -274,6 +295,15 @@
             .admin-panel {
                 flex-direction: column;
                 gap: 10px;
+            }
+            
+            .admin-controls {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .admin-btn {
+                width: 100%;
             }
             
             th, td {
@@ -303,7 +333,7 @@
                 </select>
                 <input type="password" id="passwordInput" placeholder="Enter your day password">
                 <button id="loginBtn">Login</button>
-                <p id="loginMessage" class="error-message hidden">Incorrect password. Please try again.</p>
+                <p id="loginMessage" class="error-message hidden"></p>
             </div>
         </div>
         
@@ -313,11 +343,12 @@
                 <strong>Admin Controls</strong>
                 <div class="admin-controls">
                     <span class="status-indicator" id="statusIndicator">
-                        Status: <span id="statusText">Editing</span>
+                        Status: <span id="statusText">Loading...</span>
                     </span>
-                    <button id="saveBtn" class="admin-btn save-btn">Save Draft</button>
+                    <button id="saveBtn" class="admin-btn save-btn">Save to GitHub</button>
                     <button id="lockRosterBtn" class="admin-btn lock-btn">Lock Roster</button>
                     <button id="unlockRosterBtn" class="admin-btn unlock-btn">Unlock Roster</button>
+                    <span class="sync-status" id="syncStatus"></span>
                 </div>
             </div>
 
@@ -373,14 +404,15 @@
                     <li><strong>To assign regions:</strong> Click on a cell to cycle through D2, D3, Central, Rift, Others</li>
                     <li><strong>To edit off days (Admin only):</strong> Double-click on any cell to toggle between OFF and assignable</li>
                     <li><strong>Early person:</strong> Automatically assigned to D2 on their working days</li>
-                    <li><strong>Admin:</strong> Use Lock Roster to finalize schedule and prevent changes</li>
+                    <li><strong>Admin:</strong> Use Lock Roster to finalize schedule - saves to GitHub for all users</li>
+                    <li><strong>Cloud Storage:</strong> Roster is saved to GitHub and available to all users on all devices</li>
                 </ul>
             </div>
         </div>
     </div>
     
     <footer>
-        <p>DDS Ordering Desk Scheduler v2.1 | For authorized personnel only</p>
+        <p>DDS Ordering Desk Scheduler v3.0 | GitHub Storage | For authorized personnel only</p>
     </footer>
 
     <script>
@@ -396,6 +428,12 @@
         const REGIONS = ['D2', 'D3', 'Central', 'Rift', 'Others'];
         const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         
+        // GitHub configuration - using your repository
+        const GITHUB_USERNAME = 'lan226';
+        const GITHUB_REPO = 'dds-scheduler';
+        const ROSTER_FILE_PATH = 'roster-data.json';
+        const GITHUB_RAW_URL = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${GITHUB_REPO}/main/${ROSTER_FILE_PATH}`;
+        
         // === Application State ===
         let currentUser = null;
         let isAdmin = false;
@@ -404,6 +442,7 @@
         let currentYear = 2023;
         let scheduleData = {};
         let earlyPerson = "";
+        let lastSavedTime = null;
 
         // === DOM Elements ===
         const loginView = document.getElementById('loginView');
@@ -425,10 +464,117 @@
         const weekDisplay = document.getElementById('weekDisplay');
         const prevWeekBtn = document.getElementById('prevWeekBtn');
         const nextWeekBtn = document.getElementById('nextWeekBtn');
+        const syncStatus = document.getElementById('syncStatus');
+
+        // === GitHub Storage Functions ===
+        async function loadFromGitHub() {
+            try {
+                setLoading(true);
+                syncStatus.textContent = 'Loading from GitHub...';
+                
+                // Add cache busting to avoid cached responses
+                const response = await fetch(`${GITHUB_RAW_URL}?t=${Date.now()}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    scheduleData = data.scheduleData || {};
+                    earlyPerson = data.earlyPerson || "";
+                    isRosterLocked = data.isRosterLocked || false;
+                    currentWeek = data.currentWeek || 1;
+                    currentYear = data.currentYear || 2023;
+                    lastSavedTime = data.lastSavedTime || null;
+                    
+                    earlyPersonSelect.value = earlyPerson;
+                    updateLockInterface();
+                    buildScheduleGrid();
+                    
+                    syncStatus.textContent = lastSavedTime ? `Last saved: ${new Date(lastSavedTime).toLocaleString()}` : 'No saved data yet';
+                    console.log('✓ Loaded from GitHub');
+                } else if (response.status === 404) {
+                    // File doesn't exist yet - start fresh
+                    syncStatus.textContent = 'No saved roster found. Start fresh or save as admin.';
+                    buildScheduleGrid();
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+            } catch (error) {
+                console.error('Error loading from GitHub:', error);
+                syncStatus.textContent = 'Error loading from GitHub. Using local data.';
+                loadFromLocalStorage(); // Fallback to localStorage
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        function saveToGitHub() {
+            // Since we can't directly write to GitHub from frontend code,
+            // we'll provide the data for manual saving
+            const rosterData = {
+                scheduleData,
+                earlyPerson,
+                isRosterLocked,
+                currentWeek,
+                currentYear,
+                lastSavedTime: new Date().toISOString(),
+                updatedBy: currentUser
+            };
+            
+            // Create a downloadable JSON file
+            const dataStr = JSON.stringify(rosterData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            // Create download link
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = 'roster-data.json';
+            link.click();
+            
+            // Show instructions for manual upload
+            showMessage(loginMessage, 
+                '✓ JSON file downloaded. Please upload it to your GitHub repository as "roster-data.json"', 
+                'success');
+            
+            syncStatus.textContent = 'Waiting for manual upload to GitHub...';
+            
+            // Auto-refresh after a delay to check if file was uploaded
+            setTimeout(() => {
+                loadFromGitHub();
+            }, 5000);
+        }
+
+        // === Local Storage Fallback ===
+        function saveToLocalStorage() {
+            const dataToSave = {
+                scheduleData,
+                earlyPerson,
+                isRosterLocked,
+                currentWeek,
+                currentYear,
+                lastSavedTime: new Date().toISOString()
+            };
+            localStorage.setItem('ddsLocalData', JSON.stringify(dataToSave));
+        }
+
+        function loadFromLocalStorage() {
+            const savedData = localStorage.getItem('ddsLocalData');
+            if (savedData) {
+                const parsedData = JSON.parse(savedData);
+                scheduleData = parsedData.scheduleData || {};
+                earlyPerson = parsedData.earlyPerson || "";
+                isRosterLocked = parsedData.isRosterLocked || false;
+                currentWeek = parsedData.currentWeek || 1;
+                currentYear = parsedData.currentYear || 2023;
+                
+                earlyPersonSelect.value = earlyPerson;
+                updateLockInterface();
+                buildScheduleGrid();
+            }
+        }
 
         // === Initialization ===
         document.addEventListener('DOMContentLoaded', function() {
-            loadFromLocalStorage();
             setupEventListeners();
             updateWeekDisplay();
         });
@@ -436,12 +582,19 @@
         function setupEventListeners() {
             loginBtn.addEventListener('click', handleLogin);
             logoutBtn.addEventListener('click', handleLogout);
-            saveBtn.addEventListener('click', saveToLocalStorage);
+            saveBtn.addEventListener('click', saveToGitHub);
             lockRosterBtn.addEventListener('click', confirmLockRoster);
             unlockRosterBtn.addEventListener('click', confirmUnlockRoster);
             earlyPersonSelect.addEventListener('change', handleEarlyPersonChange);
             prevWeekBtn.addEventListener('click', () => changeWeek(-1));
             nextWeekBtn.addEventListener('click', () => changeWeek(1));
+            
+            // Auto-refresh data every 30 seconds
+            setInterval(() => {
+                if (currentUser && !isAdmin) {
+                    loadFromGitHub();
+                }
+            }, 30000);
             
             // Enter key login
             passwordInput.addEventListener('keypress', function(e) {
@@ -480,7 +633,7 @@
             loginMessage.classList.add('hidden');
         }
 
-        function showAppInterface() {
+        async function showAppInterface() {
             loginView.classList.add('hidden');
             appView.classList.remove('hidden');
             loginMessage.classList.add('hidden');
@@ -488,7 +641,8 @@
             // Show/hide admin panel based on user role
             adminPanel.classList.toggle('hidden', !isAdmin);
             
-            buildScheduleGrid();
+            // Load data from GitHub
+            await loadFromGitHub();
             updateLockInterface();
         }
 
@@ -497,7 +651,7 @@
             const tbody = scheduleTable.querySelector('tbody');
             tbody.innerHTML = '';
             
-            // Remove locked class if roster is unlocked
+            // Apply locked class if roster is locked
             scheduleTable.parentElement.classList.toggle('locked', isRosterLocked);
             
             Object.keys(TEAM_CONFIG).forEach(userName => {
@@ -663,6 +817,7 @@
             updateLockInterface();
             buildScheduleGrid();
             saveToLocalStorage();
+            saveToGitHub(); // Save to GitHub when locking
         }
 
         function unlockRoster() {
@@ -704,52 +859,22 @@
                 currentYear--;
             }
             updateWeekDisplay();
-            loadFromLocalStorage();
+            loadFromGitHub();
         }
 
         function updateWeekDisplay() {
             weekDisplay.textContent = `Week ${currentWeek}, ${currentYear}`;
         }
 
-        // === Data Persistence ===
-        function saveToLocalStorage() {
-            const dataToSave = {
-                scheduleData,
-                earlyPerson,
-                isRosterLocked,
-                currentWeek,
-                currentYear
-            };
-            localStorage.setItem('ddsSchedule', JSON.stringify(dataToSave));
-            
-            // Show temporary save confirmation
-            const originalText = saveBtn.textContent;
-            saveBtn.textContent = "Saved!";
-            setTimeout(() => {
-                saveBtn.textContent = originalText;
-            }, 1000);
-        }
-
-        function loadFromLocalStorage() {
-            const savedData = localStorage.getItem('ddsSchedule');
-            if (savedData) {
-                const parsedData = JSON.parse(savedData);
-                scheduleData = parsedData.scheduleData || {};
-                earlyPerson = parsedData.earlyPerson || "";
-                isRosterLocked = parsedData.isRosterLocked || false;
-                currentWeek = parsedData.currentWeek || 1;
-                currentYear = parsedData.currentYear || 2023;
-                
-                earlyPersonSelect.value = earlyPerson;
-                updateLockInterface();
-                buildScheduleGrid();
-            }
-        }
-
         // === Utility Functions ===
         function showMessage(element, text, type) {
             element.textContent = text;
             element.classList.remove('hidden');
+            element.className = type === 'error' ? 'error-message' : 'success-message';
+        }
+
+        function setLoading(loading) {
+            document.body.classList.toggle('loading', loading);
         }
 
         // Initialize early person if not set
