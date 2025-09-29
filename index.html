@@ -148,16 +148,6 @@
             padding: 8px 12px;
         }
         
-        .early-selector {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .early-selector select {
-            width: auto;
-        }
-        
         table {
             width: 100%;
             border-collapse: collapse;
@@ -244,22 +234,14 @@
         .region-Rift { background-color: #f8d7da; }
         .region-Others { background-color: #fff3cd; }
         
-        .early-person {
-            font-weight: bold;
-            position: relative;
-        }
-        
-        .early-person::after {
-            content: "🕘";
-            margin-left: 5px;
-        }
-        
-        .instructions {
-            padding: 15px 20px;
-            background: #f8f9fa;
-            border-top: 1px solid #dee2e6;
-            font-size: 14px;
-            line-height: 1.5;
+        .leave-notice {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px;
+            text-align: center;
+            font-weight: 500;
         }
         
         .status-indicator {
@@ -284,6 +266,12 @@
         .sync-status {
             font-size: 12px;
             color: #6c757d;
+        }
+        
+        .session-info {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
         }
         
         @media (max-width: 768px) {
@@ -328,12 +316,13 @@
                     <option value="Ian">Ian (Admin)</option>
                     <option value="Kim">Kim</option>
                     <option value="Emma">Emma</option>
-                    <option value="Janet">Janet</option>
                     <option value="Kevo">Kevo</option>
+                    <option value="Wendy">Wendy</option>
                 </select>
                 <input type="password" id="passwordInput" placeholder="Enter your day password">
                 <button id="loginBtn">Login</button>
                 <p id="loginMessage" class="error-message hidden"></p>
+                <p id="autoLoginMessage" class="session-info hidden"></p>
             </div>
         </div>
         
@@ -364,19 +353,10 @@
                     <button id="nextWeekBtn" class="nav-btn">Next &gt;</button>
                 </div>
                 
-                <div class="early-selector">
-                    <label for="earlyPersonSelect"><strong>Early Person (9:30 AM):</strong></label>
-                    <select id="earlyPersonSelect">
-                        <option value="">-- Select --</option>
-                        <option value="Ian">Ian</option>
-                        <option value="Kim">Kim</option>
-                        <option value="Emma">Emma</option>
-                        <option value="Janet">Janet</option>
-                        <option value="Kevo">Kevo</option>
-                    </select>
+                <div>
+                    <span class="session-info">Logged in as: <strong id="currentUserDisplay"></strong></span>
+                    <button id="logoutBtn">Logout</button>
                 </div>
-                
-                <button id="logoutBtn">Logout</button>
             </div>
             
             <table id="scheduleTable">
@@ -396,33 +376,26 @@
                     <!-- Rows will be populated by JavaScript -->
                 </tbody>
             </table>
-            
-            <div class="instructions">
-                <h3>Instructions:</h3>
-                <ul>
-                    <li><strong>Default off days:</strong> Kim (Tue), Ian (Wed), Kevo (Thu), Janet (Fri), Emma (Sat)</li>
-                    <li><strong>To assign regions:</strong> Click on a cell to cycle through D2, D3, Central, Rift, Others</li>
-                    <li><strong>To edit off days (Admin only):</strong> Double-click on any cell to toggle between OFF and assignable</li>
-                    <li><strong>Early person:</strong> Automatically assigned to D2 on their working days</li>
-                    <li><strong>Admin:</strong> Use Lock Roster to finalize schedule - saves to GitHub for all users</li>
-                    <li><strong>Cloud Storage:</strong> Roster is saved to GitHub and available to all users on all devices</li>
-                </ul>
+
+            <!-- Leave Notice -->
+            <div class="leave-notice">
+                📝 <strong>Note:</strong> Janet is on leave until October 11th
             </div>
         </div>
     </div>
     
     <footer>
-        <p>DDS Ordering Desk Scheduler v3.0 | GitHub Storage | For authorized personnel only</p>
+        <p>DDS Ordering Desk Scheduler v4.1 | Persistent Login | For authorized personnel only</p>
     </footer>
 
     <script>
         // === Application Configuration ===
         const TEAM_CONFIG = {
-            Ian: { password: "Wednesday", isAdmin: true, offDay: "Wednesday" },
+            Ian: { password: "OFtFusGT", isAdmin: true, offDay: "Wednesday" },
             Kim: { password: "Tuesday", offDay: "Tuesday" },
-            Emma: { password: "Saturday", offDay: "Saturday" },
-            Janet: { password: "Friday", offDay: "Friday" },
-            Kevo: { password: "Thursday", offDay: "Thursday" }
+            Emma: { password: "Sunday", offDay: "Sunday" },
+            Kevo: { password: "Thursday", offDay: "Thursday" },
+            Wendy: { password: "Saturday", offDay: "Saturday" }
         };
 
         const REGIONS = ['D2', 'D3', 'Central', 'Rift', 'Others'];
@@ -434,6 +407,9 @@
         const ROSTER_FILE_PATH = 'roster-data.json';
         const GITHUB_RAW_URL = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${GITHUB_REPO}/main/${ROSTER_FILE_PATH}`;
         
+        // Session configuration
+        const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+        
         // === Application State ===
         let currentUser = null;
         let isAdmin = false;
@@ -441,7 +417,6 @@
         let currentWeek = 1;
         let currentYear = 2023;
         let scheduleData = {};
-        let earlyPerson = "";
         let lastSavedTime = null;
 
         // === DOM Elements ===
@@ -451,6 +426,7 @@
         const passwordInput = document.getElementById('passwordInput');
         const loginBtn = document.getElementById('loginBtn');
         const loginMessage = document.getElementById('loginMessage');
+        const autoLoginMessage = document.getElementById('autoLoginMessage');
         const logoutBtn = document.getElementById('logoutBtn');
         const adminPanel = document.getElementById('adminPanel');
         const saveBtn = document.getElementById('saveBtn');
@@ -460,11 +436,66 @@
         const statusIndicator = document.getElementById('statusIndicator');
         const viewOnlyNotice = document.getElementById('viewOnlyNotice');
         const scheduleTable = document.getElementById('scheduleTable');
-        const earlyPersonSelect = document.getElementById('earlyPersonSelect');
         const weekDisplay = document.getElementById('weekDisplay');
         const prevWeekBtn = document.getElementById('prevWeekBtn');
         const nextWeekBtn = document.getElementById('nextWeekBtn');
         const syncStatus = document.getElementById('syncStatus');
+        const currentUserDisplay = document.getElementById('currentUserDisplay');
+
+        // === Session Management ===
+        function saveSession() {
+            const sessionData = {
+                user: currentUser,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('ddsSession', JSON.stringify(sessionData));
+        }
+
+        function loadSession() {
+            try {
+                const sessionData = localStorage.getItem('ddsSession');
+                if (sessionData) {
+                    const parsed = JSON.parse(sessionData);
+                    const sessionAge = Date.now() - parsed.timestamp;
+                    
+                    // Check if session is still valid (within 24 hours)
+                    if (sessionAge < SESSION_DURATION) {
+                        return parsed.user;
+                    } else {
+                        // Session expired, clear it
+                        clearSession();
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading session:', error);
+                clearSession();
+            }
+            return null;
+        }
+
+        function clearSession() {
+            localStorage.removeItem('ddsSession');
+        }
+
+        function autoLogin() {
+            const savedUser = loadSession();
+            if (savedUser && TEAM_CONFIG[savedUser]) {
+                currentUser = savedUser;
+                isAdmin = TEAM_CONFIG[savedUser].isAdmin || false;
+                
+                // Update UI to show auto-login
+                autoLoginMessage.textContent = `Auto-logged in as ${savedUser}`;
+                autoLoginMessage.classList.remove('hidden');
+                
+                // Show app interface after a brief delay
+                setTimeout(() => {
+                    showAppInterface();
+                }, 1000);
+                
+                return true;
+            }
+            return false;
+        }
 
         // === GitHub Storage Functions ===
         async function loadFromGitHub() {
@@ -479,13 +510,11 @@
                     const data = await response.json();
                     
                     scheduleData = data.scheduleData || {};
-                    earlyPerson = data.earlyPerson || "";
                     isRosterLocked = data.isRosterLocked || false;
                     currentWeek = data.currentWeek || 1;
                     currentYear = data.currentYear || 2023;
                     lastSavedTime = data.lastSavedTime || null;
                     
-                    earlyPersonSelect.value = earlyPerson;
                     updateLockInterface();
                     buildScheduleGrid();
                     
@@ -513,7 +542,6 @@
             // we'll provide the data for manual saving
             const rosterData = {
                 scheduleData,
-                earlyPerson,
                 isRosterLocked,
                 currentWeek,
                 currentYear,
@@ -548,7 +576,6 @@
         function saveToLocalStorage() {
             const dataToSave = {
                 scheduleData,
-                earlyPerson,
                 isRosterLocked,
                 currentWeek,
                 currentYear,
@@ -562,12 +589,10 @@
             if (savedData) {
                 const parsedData = JSON.parse(savedData);
                 scheduleData = parsedData.scheduleData || {};
-                earlyPerson = parsedData.earlyPerson || "";
                 isRosterLocked = parsedData.isRosterLocked || false;
                 currentWeek = parsedData.currentWeek || 1;
                 currentYear = parsedData.currentYear || 2023;
                 
-                earlyPersonSelect.value = earlyPerson;
                 updateLockInterface();
                 buildScheduleGrid();
             }
@@ -577,6 +602,12 @@
         document.addEventListener('DOMContentLoaded', function() {
             setupEventListeners();
             updateWeekDisplay();
+            
+            // Try auto-login on page load
+            if (!autoLogin()) {
+                // No valid session, show login form
+                loginView.classList.remove('hidden');
+            }
         });
 
         function setupEventListeners() {
@@ -585,7 +616,6 @@
             saveBtn.addEventListener('click', saveToGitHub);
             lockRosterBtn.addEventListener('click', confirmLockRoster);
             unlockRosterBtn.addEventListener('click', confirmUnlockRoster);
-            earlyPersonSelect.addEventListener('change', handleEarlyPersonChange);
             prevWeekBtn.addEventListener('click', () => changeWeek(-1));
             nextWeekBtn.addEventListener('click', () => changeWeek(1));
             
@@ -617,6 +647,10 @@
             if (userConfig && userConfig.password === password) {
                 currentUser = selectedUser;
                 isAdmin = userConfig.isAdmin || false;
+                
+                // Save session for auto-login
+                saveSession();
+                
                 showAppInterface();
             } else {
                 showMessage(loginMessage, 'Incorrect password. Please try again.', 'error');
@@ -626,17 +660,26 @@
         function handleLogout() {
             currentUser = null;
             isAdmin = false;
+            
+            // Clear session
+            clearSession();
+            
             appView.classList.add('hidden');
             loginView.classList.remove('hidden');
             userSelect.value = '';
             passwordInput.value = '';
             loginMessage.classList.add('hidden');
+            autoLoginMessage.classList.add('hidden');
         }
 
         async function showAppInterface() {
             loginView.classList.add('hidden');
             appView.classList.remove('hidden');
             loginMessage.classList.add('hidden');
+            autoLoginMessage.classList.add('hidden');
+            
+            // Update current user display
+            currentUserDisplay.textContent = currentUser + (isAdmin ? ' (Admin)' : '');
             
             // Show/hide admin panel based on user role
             adminPanel.classList.toggle('hidden', !isAdmin);
@@ -708,11 +751,6 @@
                         }
                     }
                     
-                    // Highlight early person
-                    if (userName === earlyPerson && assignment !== 'OFF' && assignment !== '?') {
-                        cell.classList.add('early-person');
-                    }
-                    
                     row.appendChild(cell);
                 });
                 
@@ -780,25 +818,6 @@
             saveToLocalStorage();
         }
 
-        function handleEarlyPersonChange() {
-            earlyPerson = earlyPersonSelect.value;
-            if (earlyPerson) {
-                // Auto-assign D2 to early person for their working days
-                DAYS_OF_WEEK.forEach(day => {
-                    const cellKey = `${earlyPerson}-${day}`;
-                    const userConfig = TEAM_CONFIG[earlyPerson];
-                    
-                    // Only assign if it's not their off day and not already set to OFF
-                    if (day !== userConfig.offDay && scheduleData[cellKey] !== 'OFF') {
-                        scheduleData[cellKey] = 'D2';
-                    }
-                });
-                
-                saveToLocalStorage();
-                buildScheduleGrid();
-            }
-        }
-
         // === Roster Locking ===
         function confirmLockRoster() {
             if (confirm("Are you sure you want to lock the roster? Once locked, no changes can be made until unlocked.")) {
@@ -843,9 +862,6 @@
             
             // Show/hide view only notice for non-admins
             viewOnlyNotice.classList.toggle('hidden', !(isRosterLocked && !isAdmin));
-            
-            // Disable early person selector when locked for non-admins
-            earlyPersonSelect.disabled = isRosterLocked && !isAdmin;
         }
 
         // === Week Navigation ===
@@ -875,12 +891,6 @@
 
         function setLoading(loading) {
             document.body.classList.toggle('loading', loading);
-        }
-
-        // Initialize early person if not set
-        if (!earlyPerson) {
-            earlyPersonSelect.value = "Ian";
-            handleEarlyPersonChange();
         }
     </script>
 </body>
