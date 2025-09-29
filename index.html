@@ -1,3 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DDS Ordering Desk Scheduler</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #34495e;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .login-container {
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        button {
+            background: #495057;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        
+        button:hover {
+            background: #343a40;
+        }
+        
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .admin-panel {
+            background: #e9ecef;
+            padding: 15px 20px;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .admin-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .admin-btn {
+            padding: 8px 15px;
+            font-size: 14px;
+            width: auto;
+        }
+        
+        .save-btn {
+            background: #28a745;
+        }
+        
+        .save-btn:hover {
+            background: #218838;
+        }
+        
+        .lock-btn {
+            background: #dc3545;
+        }
+        
+        .lock-btn:hover {
+            background: #c82333;
+        }
+        
+        .unlock-btn {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .unlock-btn:hover {
+            background: #e0a800;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .week-navigation {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-btn {
+            width: auto;
+            padding: 8px 12px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        th {
+            background-color: #495057;
+            color: white;
+            font-weight: 500;
+        }
+        
+        .name-cell {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            text-align: left;
+        }
+        
+        .off-day {
+            background-color: #f8d7da;
+            color: #721c24;
+            font-weight: 500;
+        }
+        
+        .assignable-day {
+            background-color: #ffffff;
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+        
+        .assignable-day:hover {
+            background-color: #e9ecef;
+        }
+        
+        .locked .assignable-day {
+            cursor: default;
+            background-color: #f8f9fa;
+            pointer-events: none;
+        }
+        
+        .view-only-notice {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #ffeaa7;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            margin-top: 10px;
+        }
+        
+        .success-message {
+            color: #28a745;
+            margin-top: 10px;
+        }
+        
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            font-size: 14px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .region-D2 { background-color: #d1e7dd; }
+        .region-D3 { background-color: #cff4fc; }
+        .region-Central { background-color: #e2e3e5; }
+        .region-Rift { background-color: #f8d7da; }
+        .region-Others { background-color: #fff3cd; }
+        
+        .leave-notice {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        .status-editing {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-locked {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .sync-status {
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .session-info {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .admin-panel {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .admin-controls {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .admin-btn {
+                width: 100%;
+            }
+            
+            th, td {
+                padding: 8px 5px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>DDS Ordering Desk Scheduler</h1>
+            <p>Weekly Duty Roster Management</p>
+        </header>
+        
+        <div id="loginView" class="login-container">
+            <h2>Login to Scheduler</h2>
+            <div class="login-form">
+                <select id="userSelect">
+                    <option value="">Select User</option>
+                    <option value="Ian">Ian (Admin)</option>
+                    <option value="Kim">Kim</option>
+                    <option value="Emma">Emma</option>
+                    <option value="Kevo">Kevo</option>
+                    <option value="Wendy">Wendy</option>
+                </select>
+                <input type="password" id="passwordInput" placeholder="Enter your day password">
+                <button id="loginBtn">Login</button>
+                <p id="loginMessage" class="error-message hidden"></p>
+                <p id="autoLoginMessage" class="session-info hidden"></p>
+            </div>
+        </div>
+        
+        <div id="appView" class="hidden">
+            <!-- Admin Panel (only shown to Ian) -->
+            <div id="adminPanel" class="admin-panel hidden">
+                <strong>Admin Controls</strong>
+                <div class="admin-controls">
+                    <span class="status-indicator" id="statusIndicator">
+                        Status: <span id="statusText">Loading...</span>
+                    </span>
+                    <button id="saveBtn" class="admin-btn save-btn">Save to GitHub</button>
+                    <button id="lockRosterBtn" class="admin-btn lock-btn">Lock Roster</button>
+                    <button id="unlockRosterBtn" class="admin-btn unlock-btn">Unlock Roster</button>
+                    <span class="sync-status" id="syncStatus"></span>
+                </div>
+            </div>
+
+            <!-- View Only Notice -->
+            <div id="viewOnlyNotice" class="view-only-notice hidden">
+                <strong>View Only Mode - This roster has been locked by admin</strong>
+            </div>
+            
+            <div class="controls">
+                <div class="week-navigation">
+                    <button id="prevWeekBtn" class="nav-btn">&lt; Previous</button>
+                    <span id="weekDisplay">Week 1, 2023</span>
+                    <button id="nextWeekBtn" class="nav-btn">Next &gt;</button>
+                </div>
+                
+                <div>
+                    <span class="session-info">Logged in as: <strong id="currentUserDisplay"></strong></span>
+                    <button id="logoutBtn">Logout</button>
+                </div>
+            </div>
+            
+            <table id="scheduleTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Monday</th>
+                        <th>Tuesday</th>
+                        <th>Wednesday</th>
+                        <th>Thursday</th>
+                        <th>Friday</th>
+                        <th>Saturday</th>
+                        <th>Sunday</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be populated by JavaScript -->
+                </tbody>
+            </table>
+
+            <!-- Leave Notice -->
+            <div class="leave-notice">
+                📝 <strong>Note:</strong> Janet is on leave until October 11th
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>DDS Ordering Desk Scheduler v4.1 | Persistent Login | For authorized personnel only</p>
+    </footer>
+
     <script>
         // === Application Configuration ===
         const TEAM_CONFIG = {
@@ -30,27 +420,34 @@
         let lastSavedTime = null;
 
         // === DOM Elements ===
-        const loginView = document.getElementById('loginView');
-        const appView = document.getElementById('appView');
-        const userSelect = document.getElementById('userSelect');
-        const passwordInput = document.getElementById('passwordInput');
-        const loginBtn = document.getElementById('loginBtn');
-        const loginMessage = document.getElementById('loginMessage');
-        const autoLoginMessage = document.getElementById('autoLoginMessage');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const adminPanel = document.getElementById('adminPanel');
-        const saveBtn = document.getElementById('saveBtn');
-        const lockRosterBtn = document.getElementById('lockRosterBtn');
-        const unlockRosterBtn = document.getElementById('unlockRosterBtn');
-        const statusText = document.getElementById('statusText');
-        const statusIndicator = document.getElementById('statusIndicator');
-        const viewOnlyNotice = document.getElementById('viewOnlyNotice');
-        const scheduleTable = document.getElementById('scheduleTable');
-        const weekDisplay = document.getElementById('weekDisplay');
-        const prevWeekBtn = document.getElementById('prevWeekBtn');
-        const nextWeekBtn = document.getElementById('nextWeekBtn');
-        const syncStatus = document.getElementById('syncStatus');
-        const currentUserDisplay = document.getElementById('currentUserDisplay');
+        let loginView, appView, userSelect, passwordInput, loginBtn, loginMessage, autoLoginMessage;
+        let logoutBtn, adminPanel, saveBtn, lockRosterBtn, unlockRosterBtn, statusText, statusIndicator;
+        let viewOnlyNotice, scheduleTable, weekDisplay, prevWeekBtn, nextWeekBtn, syncStatus, currentUserDisplay;
+
+        // === Initialize DOM Elements ===
+        function initializeDOMElements() {
+            loginView = document.getElementById('loginView');
+            appView = document.getElementById('appView');
+            userSelect = document.getElementById('userSelect');
+            passwordInput = document.getElementById('passwordInput');
+            loginBtn = document.getElementById('loginBtn');
+            loginMessage = document.getElementById('loginMessage');
+            autoLoginMessage = document.getElementById('autoLoginMessage');
+            logoutBtn = document.getElementById('logoutBtn');
+            adminPanel = document.getElementById('adminPanel');
+            saveBtn = document.getElementById('saveBtn');
+            lockRosterBtn = document.getElementById('lockRosterBtn');
+            unlockRosterBtn = document.getElementById('unlockRosterBtn');
+            statusText = document.getElementById('statusText');
+            statusIndicator = document.getElementById('statusIndicator');
+            viewOnlyNotice = document.getElementById('viewOnlyNotice');
+            scheduleTable = document.getElementById('scheduleTable');
+            weekDisplay = document.getElementById('weekDisplay');
+            prevWeekBtn = document.getElementById('prevWeekBtn');
+            nextWeekBtn = document.getElementById('nextWeekBtn');
+            syncStatus = document.getElementById('syncStatus');
+            currentUserDisplay = document.getElementById('currentUserDisplay');
+        }
 
         // === Session Management ===
         function saveSession() {
@@ -210,6 +607,7 @@
 
         // === Initialization ===
         document.addEventListener('DOMContentLoaded', function() {
+            initializeDOMElements();
             setupEventListeners();
             updateWeekDisplay();
             
@@ -221,13 +619,13 @@
         });
 
         function setupEventListeners() {
-            loginBtn.addEventListener('click', handleLogin);
-            logoutBtn.addEventListener('click', handleLogout);
-            saveBtn.addEventListener('click', saveToGitHub);
-            lockRosterBtn.addEventListener('click', confirmLockRoster);
-            unlockRosterBtn.addEventListener('click', confirmUnlockRoster);
-            prevWeekBtn.addEventListener('click', () => changeWeek(-1));
-            nextWeekBtn.addEventListener('click', () => changeWeek(1));
+            if (loginBtn) loginBtn.addEventListener('click', handleLogin);
+            if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+            if (saveBtn) saveBtn.addEventListener('click', saveToGitHub);
+            if (lockRosterBtn) lockRosterBtn.addEventListener('click', confirmLockRoster);
+            if (unlockRosterBtn) unlockRosterBtn.addEventListener('click', confirmUnlockRoster);
+            if (prevWeekBtn) prevWeekBtn.addEventListener('click', () => changeWeek(-1));
+            if (nextWeekBtn) nextWeekBtn.addEventListener('click', () => changeWeek(1));
             
             // Auto-refresh data every 30 seconds
             setInterval(() => {
@@ -237,9 +635,11 @@
             }, 30000);
             
             // Enter key login
-            passwordInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') handleLogin();
-            });
+            if (passwordInput) {
+                passwordInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') handleLogin();
+                });
+            }
         }
 
         // === Authentication ===
@@ -467,11 +867,11 @@
             }
             
             // Update button states
-            lockRosterBtn.disabled = isRosterLocked;
-            unlockRosterBtn.disabled = !isRosterLocked;
+            if (lockRosterBtn) lockRosterBtn.disabled = isRosterLocked;
+            if (unlockRosterBtn) unlockRosterBtn.disabled = !isRosterLocked;
             
             // Show/hide view only notice for non-admins
-            viewOnlyNotice.classList.toggle('hidden', !(isRosterLocked && !isAdmin));
+            if (viewOnlyNotice) viewOnlyNotice.classList.toggle('hidden', !(isRosterLocked && !isAdmin));
         }
 
         // === Week Navigation ===
@@ -489,17 +889,21 @@
         }
 
         function updateWeekDisplay() {
-            weekDisplay.textContent = `Week ${currentWeek}, ${currentYear}`;
+            if (weekDisplay) weekDisplay.textContent = `Week ${currentWeek}, ${currentYear}`;
         }
 
         // === Utility Functions ===
         function showMessage(element, text, type) {
-            element.textContent = text;
-            element.classList.remove('hidden');
-            element.className = type === 'error' ? 'error-message' : 'success-message';
+            if (element) {
+                element.textContent = text;
+                element.classList.remove('hidden');
+                element.className = type === 'error' ? 'error-message' : 'success-message';
+            }
         }
 
         function setLoading(loading) {
             document.body.classList.toggle('loading', loading);
         }
     </script>
+</body>
+</html>
