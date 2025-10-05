@@ -3,10 +3,10 @@
         const TEAM_CONFIG = {
             Ian: { password: "OFtFusGT", isAdmin: true, offDay: "Wednesday" },
             Kim: { password: "Tuesday", offDay: "Tuesday" },
-            Emma: { password: "Sunday", offDay: "Sunday", onLeave: true, leaveStart: "Wednesday", leaveEnd: "February 2026" },
+            Emma: { password: "Sunday", offDay: "Sunday", onLeave: true, leaveStart: "Wednesday" },
             Kevo: { password: "Thursday", offDay: "Thursday" },
             Wendy: { password: "Saturday", offDay: "Saturday" },
-            Janet: { password: "Friday", offDay: "Friday", returning: "Saturday" }
+            Janet: { password: "Friday", offDay: "Friday" }
         };
 
         const REGIONS = ['D2', 'D3', 'Central', 'Rift', 'Others'];
@@ -76,11 +76,9 @@
                     const parsed = JSON.parse(sessionData);
                     const sessionAge = Date.now() - parsed.timestamp;
                     
-                    // Check if session is still valid (within 24 hours)
                     if (sessionAge < SESSION_DURATION) {
                         return parsed.user;
                     } else {
-                        // Session expired, clear it
                         clearSession();
                     }
                 }
@@ -101,11 +99,9 @@
                 currentUser = savedUser;
                 isAdmin = TEAM_CONFIG[savedUser].isAdmin || false;
                 
-                // Update UI to show auto-login
                 autoLoginMessage.textContent = `Auto-logged in as ${savedUser}`;
                 autoLoginMessage.classList.remove('hidden');
                 
-                // Show app interface after a brief delay
                 setTimeout(() => {
                     showAppInterface();
                 }, 1000);
@@ -121,7 +117,6 @@
                 setLoading(true);
                 syncStatus.textContent = 'Loading from GitHub...';
                 
-                // Add cache busting to avoid cached responses
                 const response = await fetch(`${GITHUB_RAW_URL}?t=${Date.now()}`);
                 
                 if (response.ok) {
@@ -137,9 +132,7 @@
                     buildScheduleGrid();
                     
                     syncStatus.textContent = lastSavedTime ? `Last saved: ${new Date(lastSavedTime).toLocaleString()}` : 'No saved data yet';
-                    console.log('✓ Loaded from GitHub');
                 } else if (response.status === 404) {
-                    // File doesn't exist yet - start fresh
                     syncStatus.textContent = 'No saved roster found. Start fresh or save as admin.';
                     buildScheduleGrid();
                 } else {
@@ -149,15 +142,13 @@
             } catch (error) {
                 console.error('Error loading from GitHub:', error);
                 syncStatus.textContent = 'Error loading from GitHub. Using local data.';
-                loadFromLocalStorage(); // Fallback to localStorage
+                loadFromLocalStorage();
             } finally {
                 setLoading(false);
             }
         }
 
         function saveToGitHub() {
-            // Since we can't directly write to GitHub from frontend code,
-            // we'll provide the data for manual saving
             const rosterData = {
                 scheduleData,
                 isRosterLocked,
@@ -167,24 +158,20 @@
                 updatedBy: currentUser
             };
             
-            // Create a downloadable JSON file
             const dataStr = JSON.stringify(rosterData, null, 2);
             const dataBlob = new Blob([dataStr], {type: 'application/json'});
             
-            // Create download link
             const link = document.createElement('a');
             link.href = URL.createObjectURL(dataBlob);
             link.download = 'roster-data.json';
             link.click();
             
-            // Show instructions for manual upload
             showMessage(loginMessage, 
                 '✓ JSON file downloaded. Please upload it to your GitHub repository as "roster-data.json"', 
                 'success');
             
             syncStatus.textContent = 'Waiting for manual upload to GitHub...';
             
-            // Auto-refresh after a delay to check if file was uploaded
             setTimeout(() => {
                 loadFromGitHub();
             }, 5000);
@@ -218,13 +205,12 @@
 
         // === Initialization ===
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded - initializing...');
             initializeDOMElements();
             setupEventListeners();
             updateWeekDisplay();
             
-            // Try auto-login on page load
             if (!autoLogin()) {
-                // No valid session, show login form
                 loginView.classList.remove('hidden');
             }
         });
@@ -238,14 +224,6 @@
             if (prevWeekBtn) prevWeekBtn.addEventListener('click', () => changeWeek(-1));
             if (nextWeekBtn) nextWeekBtn.addEventListener('click', () => changeWeek(1));
             
-            // Auto-refresh data every 30 seconds
-            setInterval(() => {
-                if (currentUser && !isAdmin) {
-                    loadFromGitHub();
-                }
-            }, 30000);
-            
-            // Enter key login
             if (passwordInput) {
                 passwordInput.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') handleLogin();
@@ -269,9 +247,7 @@
                 currentUser = selectedUser;
                 isAdmin = userConfig.isAdmin || false;
                 
-                // Save session for auto-login
                 saveSession();
-                
                 showAppInterface();
             } else {
                 showMessage(loginMessage, 'Incorrect password. Please try again.', 'error');
@@ -281,8 +257,6 @@
         function handleLogout() {
             currentUser = null;
             isAdmin = false;
-            
-            // Clear session
             clearSession();
             
             appView.classList.add('hidden');
@@ -299,13 +273,9 @@
             loginMessage.classList.add('hidden');
             autoLoginMessage.classList.add('hidden');
             
-            // Update current user display
             currentUserDisplay.textContent = currentUser + (isAdmin ? ' (Admin)' : '');
-            
-            // Show/hide admin panel based on user role
             adminPanel.classList.toggle('hidden', !isAdmin);
             
-            // Load data from GitHub
             await loadFromGitHub();
             updateLockInterface();
         }
@@ -313,9 +283,12 @@
         // === Schedule Grid Management ===
         function buildScheduleGrid() {
             const tbody = scheduleTable.querySelector('tbody');
+            if (!tbody) {
+                console.error('Table body not found!');
+                return;
+            }
             tbody.innerHTML = '';
             
-            // Apply locked class if roster is locked
             scheduleTable.parentElement.classList.toggle('locked', isRosterLocked);
             
             Object.keys(TEAM_CONFIG).forEach(userName => {
@@ -327,13 +300,8 @@
                 nameCell.textContent = userName + (userName === currentUser ? ' (You)' : '');
                 nameCell.classList.add('name-cell');
                 
-                // Add leave indicator for Emma
                 if (userName === 'Emma' && userConfig.onLeave) {
                     nameCell.innerHTML += ' <span style="color: #856404; font-size: 0.8em;">(On Leave)</span>';
-                }
-                // Add returning indicator for Janet
-                if (userName === 'Janet' && userConfig.returning) {
-                    nameCell.innerHTML += ' <span style="color: #155724; font-size: 0.8em;">(Returns ' + userConfig.returning + ')</span>';
                 }
                 
                 row.appendChild(nameCell);
@@ -344,24 +312,19 @@
                     const cellKey = `${userName}-${day}`;
                     const isOffDay = day === userConfig.offDay;
                     
-                    // Check if Emma is on leave for this day (from Wednesday onward)
-                    const isEmmaOnLeave = userName === 'Emma' && userConfig.onLeave && 
-                                         DAYS_OF_WEEK.indexOf(day) >= DAYS_OF_WEEK.indexOf(userConfig.leaveStart);
+                    // Check if Emma is on leave (from Wednesday onward)
+                    const isOnLeave = userName === 'Emma' && userConfig.onLeave && 
+                                     DAYS_OF_WEEK.indexOf(day) >= DAYS_OF_WEEK.indexOf(userConfig.leaveStart);
                     
-                    // Check if Janet is still on leave for this day (until Saturday)
-                    const isJanetOnLeave = userName === 'Janet' && userConfig.returning && 
-                                          DAYS_OF_WEEK.indexOf(day) < DAYS_OF_WEEK.indexOf(userConfig.returning);
-                    
-                    const isOnLeave = isEmmaOnLeave || isJanetOnLeave;
                     let assignment = scheduleData[cellKey];
                     
                     if (isOnLeave) {
-                        // User is on leave - show red box
-                        cell.textContent = '●'; // Simple dot indicator
-                        cell.classList.add('off-day'); // Red background
+                        // Emma on leave - red box
+                        cell.textContent = '●';
+                        cell.classList.add('off-day');
                         cell.title = 'On Leave';
                     } else if (assignment) {
-                        // Has existing assignment
+                        // Existing assignment
                         cell.textContent = assignment;
                         if (assignment === 'OFF') {
                             cell.classList.add('off-day');
@@ -374,26 +337,22 @@
                         cell.textContent = 'OFF';
                         cell.classList.add('off-day');
                     } else {
-                        // No assignment yet
+                        // No assignment
                         cell.textContent = '?';
                         cell.classList.add('assignable-day');
                     }
                     
-                    // Add data attributes
                     cell.dataset.user = userName;
                     cell.dataset.day = day;
                     
-                    // Add interaction if not locked, not on leave, and user has permission
+                    // Add interactions
                     if (!isRosterLocked && !isOnLeave && (isAdmin || userName === currentUser)) {
                         if (cell.textContent === 'OFF') {
-                            // Double-click to remove OFF status (admin only)
                             if (isAdmin) {
                                 cell.addEventListener('dblclick', handleOffDayToggle);
                             }
                         } else if (cell.textContent !== '●') {
-                            // Click to cycle through regions (except for leave days)
                             cell.addEventListener('click', handleRegionAssignment);
-                            // Double-click to set as OFF (admin only)
                             if (isAdmin) {
                                 cell.addEventListener('dblclick', handleOffDayToggle);
                             }
@@ -414,7 +373,6 @@
             const userName = cell.dataset.user;
             const day = cell.dataset.day;
             
-            // Check permissions
             if (!isAdmin && userName !== currentUser) return;
             
             const currentAssignment = cell.textContent;
@@ -422,15 +380,12 @@
             const nextIndex = (currentIndex + 1) % REGIONS.length;
             const nextAssignment = REGIONS[nextIndex];
             
-            // Update cell
             cell.textContent = nextAssignment;
             REGIONS.forEach(region => cell.classList.remove(`region-${region}`));
             cell.classList.add(`region-${nextAssignment}`);
             
-            // Update data
             scheduleData[`${userName}-${day}`] = nextAssignment;
             
-            // Auto-save if admin
             if (isAdmin) saveToLocalStorage();
         }
 
@@ -444,26 +399,19 @@
             const isCurrentlyOff = cell.textContent === 'OFF';
             
             if (isCurrentlyOff) {
-                // Remove OFF status
                 cell.textContent = '?';
                 cell.classList.remove('off-day');
                 cell.classList.add('assignable-day');
                 delete scheduleData[cellKey];
-                
-                // Re-add click event for region assignment
                 cell.addEventListener('click', handleRegionAssignment);
             } else {
-                // Set as OFF
                 cell.textContent = 'OFF';
                 cell.classList.remove('assignable-day', ...REGIONS.map(r => `region-${r}`));
                 cell.classList.add('off-day');
                 scheduleData[cellKey] = 'OFF';
-                
-                // Remove click event for region assignment
                 cell.removeEventListener('click', handleRegionAssignment);
             }
             
-            // Auto-save
             saveToLocalStorage();
         }
 
@@ -485,7 +433,7 @@
             updateLockInterface();
             buildScheduleGrid();
             saveToLocalStorage();
-            saveToGitHub(); // Save to GitHub when locking
+            saveToGitHub();
         }
 
         function unlockRoster() {
@@ -496,7 +444,6 @@
         }
 
         function updateLockInterface() {
-            // Update status display
             if (isRosterLocked) {
                 statusText.textContent = "Locked";
                 statusIndicator.className = "status-indicator status-locked";
@@ -505,11 +452,9 @@
                 statusIndicator.className = "status-indicator status-editing";
             }
             
-            // Update button states
             if (lockRosterBtn) lockRosterBtn.disabled = isRosterLocked;
             if (unlockRosterBtn) unlockRosterBtn.disabled = !isRosterLocked;
             
-            // Show/hide view only notice for non-admins
             if (viewOnlyNotice) viewOnlyNotice.classList.toggle('hidden', !(isRosterLocked && !isAdmin));
         }
 
