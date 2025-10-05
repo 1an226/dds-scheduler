@@ -279,6 +279,149 @@
             color: #721c24;
             font-weight: bold;
         }
+
+        /* Analytics Styles */
+        .analytics-panel {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin: 20px;
+            padding: 20px;
+        }
+
+        .analytics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .analytics-section {
+            margin-bottom: 25px;
+        }
+
+        .analytics-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 15px;
+        }
+
+        .workload-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+
+        .user-name {
+            width: 100px;
+            font-weight: 500;
+        }
+
+        .progress-container {
+            flex: 1;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0 15px;
+            height: 20px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .percentage {
+            width: 60px;
+            text-align: right;
+            font-weight: 500;
+        }
+
+        .region-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .region-stat {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .region-stat.D2 { border-left-color: #d1e7dd; }
+        .region-stat.D3 { border-left-color: #cff4fc; }
+        .region-stat.Central { border-left-color: #e2e3e5; }
+        .region-stat.Rift { border-left-color: #f8d7da; }
+        .region-stat.Others { border-left-color: #fff3cd; }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .insight-card {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .insight-title {
+            font-weight: 600;
+            color: #004085;
+            margin-bottom: 8px;
+        }
+
+        .insight-text {
+            color: #004085;
+            font-size: 14px;
+        }
+
+        .warning-badge {
+            background: #fff3cd;
+            color: #856404;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        .good-badge {
+            background: #d1e7dd;
+            color: #0f5132;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
         
         @media (max-width: 768px) {
             .controls {
@@ -303,6 +446,20 @@
             th, td {
                 padding: 8px 5px;
                 font-size: 14px;
+            }
+
+            .region-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .workload-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .progress-container {
+                width: 100%;
+                margin: 8px 0;
             }
         }
     </style>
@@ -365,6 +522,38 @@
                     <button id="logoutBtn">Logout</button>
                 </div>
             </div>
+
+            <!-- Team Analytics Panel (Admin Only) -->
+            <div id="analyticsPanel" class="analytics-panel hidden">
+                <div class="analytics-header">
+                    <h3 style="margin: 0;">📊 Team Analytics</h3>
+                    <span style="font-size: 14px; color: #6c757d;">Week <span id="analyticsWeekDisplay">1, 2023</span></span>
+                </div>
+                
+                <!-- Workload Distribution -->
+                <div class="analytics-section">
+                    <div class="analytics-title">Workload Distribution</div>
+                    <div id="workloadDistribution">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- Region Coverage -->
+                <div class="analytics-section">
+                    <div class="analytics-title">Region Coverage</div>
+                    <div class="region-stats" id="regionCoverage">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- Insights & Recommendations -->
+                <div class="analytics-section">
+                    <div class="analytics-title">Insights & Recommendations</div>
+                    <div id="analyticsInsights">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+            </div>
             
             <table id="scheduleTable">
                 <thead>
@@ -394,7 +583,7 @@
     </div>
     
     <footer>
-        <p>DDS Ordering Desk Scheduler v4.1 | Persistent Login | For authorized personnel only</p>
+        <p>DDS Ordering Desk Scheduler v4.2 | Team Analytics | For authorized personnel only</p>
     </footer>
 
     <script>
@@ -433,6 +622,7 @@
         let loginView, appView, userSelect, passwordInput, loginBtn, loginMessage, autoLoginMessage;
         let logoutBtn, adminPanel, saveBtn, lockRosterBtn, unlockRosterBtn, statusText, statusIndicator;
         let viewOnlyNotice, scheduleTable, weekDisplay, prevWeekBtn, nextWeekBtn, syncStatus, currentUserDisplay;
+        let analyticsPanel, analyticsWeekDisplay, workloadDistribution, regionCoverage, analyticsInsights;
 
         // === Initialize DOM Elements ===
         function initializeDOMElements() {
@@ -457,6 +647,194 @@
             nextWeekBtn = document.getElementById('nextWeekBtn');
             syncStatus = document.getElementById('syncStatus');
             currentUserDisplay = document.getElementById('currentUserDisplay');
+            
+            // Analytics elements
+            analyticsPanel = document.getElementById('analyticsPanel');
+            analyticsWeekDisplay = document.getElementById('analyticsWeekDisplay');
+            workloadDistribution = document.getElementById('workloadDistribution');
+            regionCoverage = document.getElementById('regionCoverage');
+            analyticsInsights = document.getElementById('analyticsInsights');
+        }
+
+        // === Analytics Functions ===
+        function calculateTeamAnalytics() {
+            const userShifts = {};
+            const regionCounts = {};
+            let totalShifts = 0;
+
+            // Initialize counters
+            Object.keys(TEAM_CONFIG).forEach(user => {
+                userShifts[user] = 0;
+            });
+            REGIONS.forEach(region => {
+                regionCounts[region] = 0;
+            });
+
+            // Count shifts and regions
+            Object.keys(scheduleData).forEach(key => {
+                const [userName, day] = key.split('-');
+                const assignment = scheduleData[key];
+                
+                if (assignment && assignment !== 'OFF' && assignment !== '?') {
+                    userShifts[userName] = (userShifts[userName] || 0) + 1;
+                    regionCounts[assignment] = (regionCounts[assignment] || 0) + 1;
+                    totalShifts++;
+                }
+            });
+
+            return { userShifts, regionCounts, totalShifts };
+        }
+
+        function updateAnalyticsPanel() {
+            if (!isAdmin) {
+                analyticsPanel.classList.add('hidden');
+                return;
+            }
+
+            analyticsPanel.classList.remove('hidden');
+            analyticsWeekDisplay.textContent = `${currentWeek}, ${currentYear}`;
+
+            const analytics = calculateTeamAnalytics();
+            updateWorkloadDistribution(analytics);
+            updateRegionCoverage(analytics);
+            updateAnalyticsInsights(analytics);
+        }
+
+        function updateWorkloadDistribution(analytics) {
+            workloadDistribution.innerHTML = '';
+            const { userShifts, totalShifts } = analytics;
+
+            Object.keys(userShifts).forEach(userName => {
+                const shifts = userShifts[userName];
+                const percentage = totalShifts > 0 ? Math.round((shifts / totalShifts) * 100) : 0;
+                
+                const workloadBar = document.createElement('div');
+                workloadBar.className = 'workload-bar';
+                
+                workloadBar.innerHTML = `
+                    <div class="user-name">${userName}</div>
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: ${percentage}%">
+                            ${percentage > 10 ? `${percentage}%` : ''}
+                        </div>
+                    </div>
+                    <div class="percentage">${shifts} shifts</div>
+                `;
+                
+                workloadDistribution.appendChild(workloadBar);
+            });
+        }
+
+        function updateRegionCoverage(analytics) {
+            regionCoverage.innerHTML = '';
+            const { regionCounts, totalShifts } = analytics;
+
+            REGIONS.forEach(region => {
+                const count = regionCounts[region] || 0;
+                const percentage = totalShifts > 0 ? Math.round((count / totalShifts) * 100) : 0;
+                
+                const regionStat = document.createElement('div');
+                regionStat.className = `region-stat ${region}`;
+                
+                regionStat.innerHTML = `
+                    <div class="stat-value">${percentage}%</div>
+                    <div class="stat-label">${region} Region</div>
+                    <div style="font-size: 12px; color: #6c757d; margin-top: 5px;">${count} shifts</div>
+                `;
+                
+                regionCoverage.appendChild(regionStat);
+            });
+        }
+
+        function updateAnalyticsInsights(analytics) {
+            analyticsInsights.innerHTML = '';
+            const { userShifts, regionCounts, totalShifts } = analytics;
+
+            // Calculate fairness score (standard deviation of workload)
+            const workloads = Object.values(userShifts);
+            const avgWorkload = workloads.reduce((a, b) => a + b, 0) / workloads.length;
+            const variance = workloads.reduce((a, b) => a + Math.pow(b - avgWorkload, 2), 0) / workloads.length;
+            const fairnessScore = Math.sqrt(variance);
+
+            // Generate insights
+            const insights = [];
+
+            // Workload fairness insight
+            if (fairnessScore > 2) {
+                insights.push({
+                    type: 'warning',
+                    title: 'Workload Imbalance Detected',
+                    text: 'Some team members are carrying significantly more shifts than others. Consider redistributing workload.'
+                });
+            } else {
+                insights.push({
+                    type: 'good',
+                    title: 'Balanced Workload',
+                    text: 'Workload is fairly distributed across the team.'
+                });
+            }
+
+            // Region coverage insight
+            const regionPercentages = REGIONS.map(region => (regionCounts[region] || 0) / totalShifts * 100);
+            const maxRegion = Math.max(...regionPercentages);
+            const minRegion = Math.min(...regionPercentages);
+
+            if (maxRegion - minRegion > 30) {
+                insights.push({
+                    type: 'warning',
+                    title: 'Region Coverage Imbalance',
+                    text: 'Some regions are significantly over or under-staffed. Consider adjusting region assignments.'
+                });
+            }
+
+            // Leave impact insight
+            const activeUsers = Object.keys(TEAM_CONFIG).filter(user => !TEAM_CONFIG[user].onLeave).length;
+            const totalUsers = Object.keys(TEAM_CONFIG).length;
+            
+            if (activeUsers < totalUsers) {
+                const leaveImpact = Math.round(((totalUsers - activeUsers) / totalUsers) * 100);
+                insights.push({
+                    type: 'warning',
+                    title: 'Leave Impact',
+                    text: `${leaveImpact}% of team is on leave. This reduces overall coverage capacity.`
+                });
+            }
+
+            // Render insights
+            insights.forEach(insight => {
+                const insightCard = document.createElement('div');
+                insightCard.className = 'insight-card';
+                
+                insightCard.innerHTML = `
+                    <div class="insight-title">
+                        ${insight.type === 'warning' ? '⚠️ ' : '✅ '}${insight.title}
+                        <span class="${insight.type === 'warning' ? 'warning-badge' : 'good-badge'}">
+                            ${insight.type === 'warning' ? 'Needs Attention' : 'Good'}
+                        </span>
+                    </div>
+                    <div class="insight-text">${insight.text}</div>
+                `;
+                
+                analyticsInsights.appendChild(insightCard);
+            });
+
+            // Add general stats
+            const statsCard = document.createElement('div');
+            statsCard.className = 'insight-card';
+            statsCard.style.background = '#d1e7dd';
+            statsCard.style.borderColor = '#badbcc';
+            
+            statsCard.innerHTML = `
+                <div class="insight-title" style="color: #0f5132;">📈 Weekly Summary</div>
+                <div class="insight-text" style="color: #0f5132;">
+                    • Total Shifts: <strong>${totalShifts}</strong><br>
+                    • Active Team Members: <strong>${activeUsers}/${totalUsers}</strong><br>
+                    • Regions Covered: <strong>${REGIONS.filter(region => regionCounts[region] > 0).length}</strong><br>
+                    • Workload Fairness: <strong>${fairnessScore.toFixed(1)}</strong> (lower is better)
+                </div>
+            `;
+            
+            analyticsInsights.appendChild(statsCard);
         }
 
         // === Session Management ===
@@ -529,11 +907,13 @@
                     
                     updateLockInterface();
                     buildScheduleGrid();
+                    updateAnalyticsPanel();
                     
                     syncStatus.textContent = lastSavedTime ? `Last saved: ${new Date(lastSavedTime).toLocaleString()}` : 'No saved data yet';
                 } else if (response.status === 404) {
                     syncStatus.textContent = 'No saved roster found. Start fresh or save as admin.';
                     buildScheduleGrid();
+                    updateAnalyticsPanel();
                 } else {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
@@ -599,6 +979,7 @@
                 
                 updateLockInterface();
                 buildScheduleGrid();
+                updateAnalyticsPanel();
             }
         }
 
@@ -763,6 +1144,9 @@
                 
                 tbody.appendChild(row);
             });
+
+            // Update analytics after building grid
+            updateAnalyticsPanel();
         }
 
         function handleRegionAssignment(event) {
@@ -785,7 +1169,10 @@
             
             scheduleData[`${userName}-${day}`] = nextAssignment;
             
-            if (isAdmin) saveToLocalStorage();
+            if (isAdmin) {
+                saveToLocalStorage();
+                updateAnalyticsPanel(); // Update analytics when admin makes changes
+            }
         }
 
         function handleOffDayToggle(event) {
@@ -812,6 +1199,7 @@
             }
             
             saveToLocalStorage();
+            updateAnalyticsPanel(); // Update analytics when admin makes changes
         }
 
         // === Roster Locking ===
