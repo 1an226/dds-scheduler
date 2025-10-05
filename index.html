@@ -273,6 +273,12 @@
             color: #6c757d;
             margin-top: 5px;
         }
+
+        .on-leave {
+            background-color: #fff3cd !important;
+            color: #856404;
+            font-style: italic;
+        }
         
         @media (max-width: 768px) {
             .controls {
@@ -318,6 +324,7 @@
                     <option value="Emma">Emma</option>
                     <option value="Kevo">Kevo</option>
                     <option value="Wendy">Wendy</option>
+                    <option value="Janet">Janet</option>
                 </select>
                 <input type="password" id="passwordInput" placeholder="Enter your day password">
                 <button id="loginBtn">Login</button>
@@ -379,7 +386,9 @@
 
             <!-- Leave Notice -->
             <div class="leave-notice">
-                📝 <strong>Note:</strong> Janet is on leave until October 11th
+                📝 <strong>Team Updates:</strong> 
+                Emma is on leave from Wednesday until February 2024 • 
+                Janet returns on Saturday
             </div>
         </div>
     </div>
@@ -393,9 +402,10 @@
         const TEAM_CONFIG = {
             Ian: { password: "OFtFusGT", isAdmin: true, offDay: "Wednesday" },
             Kim: { password: "Tuesday", offDay: "Tuesday" },
-            Emma: { password: "Sunday", offDay: "Sunday" },
+            Emma: { password: "Sunday", offDay: "Sunday", onLeave: true, leaveStart: "Wednesday" },
             Kevo: { password: "Thursday", offDay: "Thursday" },
-            Wendy: { password: "Saturday", offDay: "Saturday" }
+            Wendy: { password: "Saturday", offDay: "Saturday" },
+            Janet: { password: "Friday", offDay: "Friday" }
         };
 
         const REGIONS = ['D2', 'D3', 'Central', 'Rift', 'Others'];
@@ -715,6 +725,12 @@
                 const nameCell = document.createElement('td');
                 nameCell.textContent = userName + (userName === currentUser ? ' (You)' : '');
                 nameCell.classList.add('name-cell');
+                
+                // Add leave indicator for Emma
+                if (userName === 'Emma' && userConfig.onLeave) {
+                    nameCell.innerHTML += ' <span style="color: #856404; font-size: 0.8em;">(On Leave)</span>';
+                }
+                
                 row.appendChild(nameCell);
                 
                 // Day cells
@@ -722,37 +738,50 @@
                     const cell = document.createElement('td');
                     const cellKey = `${userName}-${day}`;
                     const isOffDay = day === userConfig.offDay;
-                    let assignment = scheduleData[cellKey] || (isOffDay ? 'OFF' : '?');
                     
-                    // Apply appropriate classes and content
-                    if (isOffDay && assignment !== 'OFF') {
-                        // Admin has overridden the off day
-                        assignment = scheduleData[cellKey] || '?';
+                    // Check if user is on leave for this day
+                    const isOnLeave = userConfig.onLeave && 
+                                     ((userConfig.leaveStart && DAYS_OF_WEEK.indexOf(day) >= DAYS_OF_WEEK.indexOf(userConfig.leaveStart)) || 
+                                      !userConfig.leaveStart);
+                    
+                    let assignment = scheduleData[cellKey];
+                    
+                    if (isOnLeave) {
+                        // User is on leave - show "ON LEAVE"
+                        cell.textContent = 'ON LEAVE';
+                        cell.classList.add('on-leave');
+                    } else if (assignment) {
+                        // Has existing assignment
                         cell.textContent = assignment;
-                        cell.classList.add('assignable-day');
-                        if (assignment !== '?') cell.classList.add(`region-${assignment}`);
-                    } else if (assignment === 'OFF') {
+                        if (assignment === 'OFF') {
+                            cell.classList.add('off-day');
+                        } else {
+                            cell.classList.add('assignable-day');
+                            cell.classList.add(`region-${assignment}`);
+                        }
+                    } else if (isOffDay) {
+                        // Regular off day
                         cell.textContent = 'OFF';
                         cell.classList.add('off-day');
                     } else {
-                        cell.textContent = assignment;
+                        // No assignment yet
+                        cell.textContent = '?';
                         cell.classList.add('assignable-day');
-                        if (assignment !== '?') cell.classList.add(`region-${assignment}`);
                     }
                     
                     // Add data attributes
                     cell.dataset.user = userName;
                     cell.dataset.day = day;
                     
-                    // Add interaction if not locked and user has permission
-                    if (!isRosterLocked && (isAdmin || userName === currentUser)) {
-                        if (assignment === 'OFF') {
+                    // Add interaction if not locked, not on leave, and user has permission
+                    if (!isRosterLocked && !isOnLeave && (isAdmin || userName === currentUser)) {
+                        if (cell.textContent === 'OFF') {
                             // Double-click to remove OFF status (admin only)
                             if (isAdmin) {
                                 cell.addEventListener('dblclick', handleOffDayToggle);
                             }
-                        } else {
-                            // Click to cycle through regions
+                        } else if (cell.textContent !== 'ON LEAVE') {
+                            // Click to cycle through regions (except for leave days)
                             cell.addEventListener('click', handleRegionAssignment);
                             // Double-click to set as OFF (admin only)
                             if (isAdmin) {
