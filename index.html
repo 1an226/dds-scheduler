@@ -1,9 +1,9 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DDS Ordering Desk Scheduler</title>
+    <title>DDS Ordering Desk Scheduler - Login</title>
     <style>
         :root {
             --primary: #2c3e50;
@@ -11,8 +11,6 @@
             --success: #2ecc71;
             --warning: #f39c12;
             --danger: #e74c3c;
-            --light: #ecf0f1;
-            --dark: #34495e;
         }
         
         * {
@@ -110,32 +108,10 @@
             font-size: 14px;
             color: #7f8c8d;
             line-height: 1.6;
-            text-align: left;
+            text-align: center;
             background: #f8f9fa;
             padding: 15px;
             border-radius: 8px;
-            border-left: 4px solid var(--secondary);
-        }
-        
-        .demo-note strong {
-            display: block;
-            margin-bottom: 10px;
-            color: var(--primary);
-        }
-        
-        .demo-note ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        
-        .demo-note li {
-            padding: 5px 0;
-            border-bottom: 1px solid #e9ecef;
-        }
-        
-        .demo-note li:last-child {
-            border-bottom: none;
         }
         
         .hidden {
@@ -147,6 +123,21 @@
             font-size: 14px;
             margin-top: 10px;
             text-align: center;
+            background: #fde8e8;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #fbd5d5;
+        }
+        
+        .success-message {
+            color: var(--success);
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+            background: #e8f6f3;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #d1f2eb;
         }
     </style>
 </head>
@@ -175,43 +166,50 @@
             </div>
             
             <div id="errorMessage" class="error-message hidden"></div>
+            <div id="successMessage" class="success-message hidden"></div>
             
             <button class="login-btn" onclick="login()">Login</button>
         </div>
         
         <div class="demo-note">
-            <strong>User Passwords:</strong>
-            <ul>
-                <li><strong>Ian (Admin):</strong> OFtFusGT</li>
-                <li><strong>Kim:</strong> Monday</li>
-                <li><strong>Emma:</strong> Tuesday</li>
-                <li><strong>Kevo:</strong> Sunday</li>
-                <li><strong>Wendy:</strong> Saturday</li>
-                <li><strong>Janet:</strong> Friday</li>
-            </ul>
+            <strong>Demo Access:</strong><br>
+            Use the default password for each user<br>
+            Contact admin if you forgot your password
         </div>
     </div>
 
     <script>
-        // CORRECT User credentials - using default OFF days as passwords
+        // User credentials - NOT displayed to users
         const userCredentials = {
-            'Ian': 'OFtFusGT',      // Admin password - CORRECTED
+            'Ian': 'OFtFusGT',      // Admin password
             'Kim': 'Monday',        // Kim's OFF day
             'Emma': 'Tuesday',      // Emma's OFF day  
-            'Kevo': 'Sunday',       // Kevo's OFF day - NAME CORRECTED
+            'Kevo': 'Sunday',       // Kevo's OFF day
             'Wendy': 'Saturday',    // Wendy's OFF day
             'Janet': 'Friday'       // Janet's OFF day
+        };
+
+        // Password hints for demo purposes (not shown in production)
+        const passwordHints = {
+            'Ian': 'Admin special password',
+            'Kim': 'Your usual OFF day',
+            'Emma': 'Your usual OFF day',  
+            'Kevo': 'Your usual OFF day',
+            'Wendy': 'Your usual OFF day',
+            'Janet': 'Your usual OFF day'
         };
 
         function login() {
             const userSelect = document.getElementById('userSelect');
             const passwordInput = document.getElementById('password');
             const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
             const selectedUser = userSelect.value;
             const password = passwordInput.value;
             
-            // Clear previous errors
+            // Clear previous messages
             errorMessage.classList.add('hidden');
+            successMessage.classList.add('hidden');
             
             if (!selectedUser) {
                 showError('Please select a user');
@@ -226,13 +224,23 @@
             // Check credentials
             const correctPassword = userCredentials[selectedUser];
             if (password === correctPassword) {
-                // Successful login - store user and redirect to main app
+                // Successful login
+                showSuccess('Login successful! Redirecting...');
+                
+                // Store login state
+                localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('currentUser', selectedUser);
-                alert('Login successful! Redirecting to main application...');
-                // In a real app, you would redirect to the main page
-                // window.location.href = 'main-app.html';
+                
+                // Redirect to main application after short delay
+                setTimeout(() => {
+                    // In a real app, this would redirect to your main application
+                    // For demo, we'll just show a success message
+                    alert('Welcome ' + selectedUser + '! Main application would load here.');
+                    // window.location.href = 'main-application.html';
+                }, 1000);
+                
             } else {
-                showError('Invalid password for ' + selectedUser + '. Please check the password list below.');
+                showError('Invalid password. Hint: ' + (passwordHints[selectedUser] || 'Check with admin'));
             }
         }
 
@@ -240,6 +248,12 @@
             const errorMessage = document.getElementById('errorMessage');
             errorMessage.textContent = message;
             errorMessage.classList.remove('hidden');
+        }
+
+        function showSuccess(message) {
+            const successMessage = document.getElementById('successMessage');
+            successMessage.textContent = message;
+            successMessage.classList.remove('hidden');
         }
 
         // Allow pressing Enter to login
@@ -251,15 +265,27 @@
 
         // Check if already logged in
         function checkExistingLogin() {
-            const savedUser = localStorage.getItem('currentUser');
-            if (savedUser) {
-                alert('You are already logged in as ' + savedUser);
-                // In a real app, redirect to main application
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            const currentUser = localStorage.getItem('currentUser');
+            
+            if (isLoggedIn === 'true' && currentUser) {
+                // User is already logged in, redirect to main app
+                alert('Welcome back ' + currentUser + '!');
+                // window.location.href = 'main-application.html';
             }
         }
 
+        // Clear any existing login when page loads (for demo purposes)
+        function clearExistingLogin() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('currentUser');
+        }
+
         // Initialize
-        document.addEventListener('DOMContentLoaded', checkExistingLogin);
+        document.addEventListener('DOMContentLoaded', function() {
+            clearExistingLogin(); // Remove this line in production
+            checkExistingLogin();
+        });
     </script>
 </body>
 </html>
