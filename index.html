@@ -133,6 +133,10 @@
             background-color: #2980b9;
         }
         
+        .analytics-btn {
+            background-color: var(--success);
+        }
+        
         .logout-btn {
             background-color: var(--danger);
         }
@@ -170,6 +174,7 @@
             background-color: white;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s;
+            min-width: 100px;
         }
         
         .schedule-table td:hover {
@@ -180,6 +185,7 @@
             font-weight: 600;
             background-color: #f8f9fa !important;
             text-align: left;
+            min-width: 150px;
         }
         
         .highlight-user {
@@ -312,6 +318,7 @@
             margin-top: 20px;
             font-size: 14px;
             color: #7f8c8d;
+            line-height: 1.4;
         }
         
         .hidden {
@@ -339,6 +346,64 @@
             color: var(--success);
             margin-bottom: 10px;
         }
+        
+        /* Analytics Modal */
+        .analytics-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .analytics-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .analytics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+        
+        .metric {
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .metric-label {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .metric-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--secondary);
+        }
     </style>
 </head>
 <body>
@@ -352,9 +417,9 @@
                 <label for="userSelect">Select User:</label>
                 <select id="userSelect">
                     <option value="">-- Choose User --</option>
-                    <option value="Emma">Emma</option>
                     <option value="Ian">Ian (Admin)</option>
                     <option value="Kim">Kim</option>
+                    <option value="Emma">Emma</option>
                     <option value="Kevo">Kevo</option>
                     <option value="Wendy">Wendy</option>
                     <option value="Janet">Janet</option>
@@ -368,8 +433,13 @@
         </div>
         
         <div class="demo-note">
-            <strong>Admin Login:</strong> Ian / OFtFusGT<br>
-            Other users: Any password works
+            <strong>Passwords:</strong><br>
+            • Ian: OFtFusGT<br>
+            • Kim: Monday<br>
+            • Emma: Tuesday<br>
+            • Kevo: Sunday<br>
+            • Wendy: Saturday<br>
+            • Janet: Friday
         </div>
     </div>
 
@@ -395,7 +465,7 @@
             <h3>Admin Controls</h3>
             <p>You can edit schedules, manage users, and view analytics</p>
             <button class="btn" style="margin-right: 10px;">Edit Schedule</button>
-            <button class="btn">View Analytics</button>
+            <button class="btn analytics-btn" onclick="showAnalytics()">View Analytics</button>
         </div>
         
         <div class="nav-controls">
@@ -404,7 +474,10 @@
                 <div class="week-display">Week 1, 2023</div>
                 <button class="btn">Next &gt;</button>
             </div>
-            <button class="btn logout-btn" onclick="logout()">Logout</button>
+            <div>
+                <button class="btn analytics-btn" onclick="showAnalytics()" id="userAnalyticsBtn">My Analytics</button>
+                <button class="btn logout-btn" onclick="logout()">Logout</button>
+            </div>
         </div>
         
         <table class="schedule-table">
@@ -428,22 +501,37 @@
         <div class="team-updates">
             <h3>Team Updates</h3>
             <p id="teamUpdatesText">Emma is on leave from Wednesday until February 2026 - Janet returns on Saturday</p>
+            <p><strong>TPC - Mostly sunny</strong></p>
         </div>
         
         <footer>
+            <p>Monday, October 6, 2023 | Mon 5:53 AM (Local time) | 9:36 AM | 10/6/2023</p>
             <p>Last saved: 2025-10-05T19:23:19.919Z | Updated by: Ian</p>
         </footer>
     </div>
 
+    <!-- Analytics Modal -->
+    <div id="analyticsModal" class="analytics-modal hidden">
+        <div class="analytics-content">
+            <div class="analytics-header">
+                <h2 id="analyticsTitle">User Analytics</h2>
+                <button class="close-btn" onclick="hideAnalytics()">&times;</button>
+            </div>
+            <div id="analyticsContent">
+                <!-- Analytics content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
     <script>
-        // User credentials
+        // User credentials - using default OFF days as passwords
         const userCredentials = {
-            'Ian': 'OFtFusGT',
-            'Emma': 'any',
-            'Kim': 'any', 
-            'Kevo': 'any',
-            'Wendy': 'any',
-            'Janet': 'any'
+            'Ian': 'OFtFusGT',      // Admin password
+            'Kim': 'Monday',        // Kim's OFF day
+            'Emma': 'Tuesday',      // Emma's OFF day  
+            'Kevo': 'Sunday',       // Kevo's OFF day
+            'Wendy': 'Saturday',    // Wendy's OFF day
+            'Janet': 'Friday'       // Janet's OFF day
         };
 
         // Schedule data with box styling
@@ -499,7 +587,7 @@
             if (currentUser === 'Emma') {
                 document.getElementById('userStatus').textContent = 'on leave until February 2026';
                 document.getElementById('teamUpdatesText').innerHTML = 
-                    '<strong>You are on leave</strong> from Wednesday until February 2026';
+                    '<strong>You are on leave</strong> from Wednesday until February 2026<br>Janet returns on Saturday';
             } else if (isAdmin) {
                 document.getElementById('userStatus').textContent = 'Administrator';
                 document.getElementById('teamUpdatesText').innerHTML = 
@@ -513,10 +601,12 @@
                 document.getElementById('adminBadge').classList.remove('hidden');
                 document.getElementById('adminControls').classList.remove('hidden');
                 document.getElementById('modeBadge').textContent = 'Admin Mode - Full Access';
+                document.getElementById('userAnalyticsBtn').textContent = 'Team Analytics';
             } else {
                 document.getElementById('adminBadge').classList.add('hidden');
                 document.getElementById('adminControls').classList.add('hidden');
                 document.getElementById('modeBadge').textContent = 'View Only Mode - Locked by admin';
+                document.getElementById('userAnalyticsBtn').textContent = 'My Analytics';
             }
         }
 
@@ -537,12 +627,12 @@
             
             // Check credentials
             const correctPassword = userCredentials[selectedUser];
-            if (correctPassword === 'any' || password === correctPassword) {
+            if (password === correctPassword) {
                 currentUser = selectedUser;
                 localStorage.setItem('currentUser', currentUser);
                 showMainApp();
             } else {
-                alert('Invalid password for ' + selectedUser);
+                alert('Invalid password for ' + selectedUser + '. Hint: Use your default OFF day as password.');
             }
         }
 
@@ -578,7 +668,7 @@
                 }
                 row.appendChild(nameCell);
                 
-                // Day cells with box styling
+                // Day cells with box styling - MAKE SURE ALLOCATIONS ARE VISIBLE
                 scheduleData[user].forEach((shift, index) => {
                     const dayCell = document.createElement('td');
                     
@@ -588,10 +678,18 @@
                     else if (shift === 'D2') dayCell.className = 'shift-d2';
                     else if (shift === 'D3') dayCell.className = 'shift-d3';
                     else if (shift === 'OFF') dayCell.className = 'shift-off';
-                    else if (shift === '•') dayCell.className = 'shift-leave';
-                    else dayCell.className = 'shift-empty';
+                    else if (shift === '•') {
+                        dayCell.className = 'shift-leave';
+                        dayCell.textContent = 'Leave';
+                    } else {
+                        dayCell.className = 'shift-empty';
+                        dayCell.textContent = shift;
+                    }
                     
-                    dayCell.textContent = shift;
+                    if (shift !== '•') {
+                        dayCell.textContent = shift;
+                    }
+                    
                     row.appendChild(dayCell);
                 });
                 
@@ -599,8 +697,105 @@
             });
         }
 
+        function showAnalytics() {
+            const modal = document.getElementById('analyticsModal');
+            const title = document.getElementById('analyticsTitle');
+            const content = document.getElementById('analyticsContent');
+            
+            // Set title based on user
+            if (currentUser === 'Ian') {
+                title.textContent = 'Team Analytics - Admin View';
+                content.innerHTML = generateAdminAnalytics();
+            } else {
+                title.textContent = 'My Analytics - ' + currentUser;
+                content.innerHTML = generateUserAnalytics(currentUser);
+            }
+            
+            modal.classList.remove('hidden');
+        }
+
+        function hideAnalytics() {
+            document.getElementById('analyticsModal').classList.add('hidden');
+        }
+
+        function generateUserAnalytics(user) {
+            const shifts = scheduleData[user];
+            let totalShifts = 0;
+            let offDays = 0;
+            let leaveDays = 0;
+            const shiftCount = { Rift: 0, Central: 0, D2: 0, D3: 0, OFF: 0 };
+            
+            shifts.forEach(shift => {
+                if (shift === '•') {
+                    leaveDays++;
+                } else if (shift === 'OFF') {
+                    offDays++;
+                    shiftCount.OFF++;
+                } else {
+                    totalShifts++;
+                    if (shiftCount.hasOwnProperty(shift)) {
+                        shiftCount[shift]++;
+                    }
+                }
+            });
+            
+            const workingDays = totalShifts;
+            const mostCommonShift = Object.keys(shiftCount).reduce((a, b) => shiftCount[a] > shiftCount[b] ? a : b);
+            
+            return `
+                <div class="metric">
+                    <div class="metric-label">Total Working Days</div>
+                    <div class="metric-value">${workingDays} days</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">OFF Days</div>
+                    <div class="metric-value">${offDays} days</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Leave Days</div>
+                    <div class="metric-value">${leaveDays} days</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Most Common Role</div>
+                    <div class="metric-value">${mostCommonShift}</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Shift Distribution</div>
+                    <div class="metric-value">
+                        Rift: ${shiftCount.Rift} | Central: ${shiftCount.Central}<br>
+                        D2: ${shiftCount.D2} | D3: ${shiftCount.D3}
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateAdminAnalytics() {
+            let html = '';
+            
+            users.forEach(user => {
+                const shifts = scheduleData[user];
+                const workingDays = shifts.filter(shift => shift !== 'OFF' && shift !== '•').length;
+                
+                html += `
+                    <div class="metric">
+                        <div class="metric-label">${user} ${user === 'Ian' ? '(Admin)' : ''}</div>
+                        <div class="metric-value">${workingDays} working days</div>
+                    </div>
+                `;
+            });
+            
+            return html;
+        }
+
         // Initialize the application
         document.addEventListener('DOMContentLoaded', initializePage);
+
+        // Close modal when clicking outside
+        document.getElementById('analyticsModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideAnalytics();
+            }
+        });
     </script>
 </body>
 </html>
