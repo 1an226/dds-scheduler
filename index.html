@@ -3,41 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DDS Ordering Desk Scheduler</title>
+    <title>DDS Ordering Desk Scheduler - Analytics</title>
     <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #34495e;
+        }
+        
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
-            background: #f8f9fa;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
+            background-color: #f5f7fa;
             color: #333;
+            line-height: 1.6;
         }
         
         .container {
-            width: 100%;
-            max-width: 1400px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            margin: 20px 0;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
         }
         
         header {
-            background: #2c3e50;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
-            padding: 20px;
-            text-align: center;
-            border-bottom: 1px solid #34495e;
+            padding: 20px 0;
+            border-radius: 10px 10px 0 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
         }
         
         h1 {
@@ -45,517 +55,287 @@
             margin-bottom: 5px;
         }
         
-        .login-container {
-            padding: 40px;
-            text-align: center;
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
         }
         
-        .login-form {
-            max-width: 400px;
-            margin: 0 auto;
+        .user-info {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-align: right;
         }
         
-        input, select, button {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
+        .user-name {
+            font-weight: bold;
+            font-size: 18px;
         }
         
-        button {
-            background: #495057;
+        .user-status {
+            font-size: 12px;
+            margin-top: 3px;
+        }
+        
+        .mode-badge {
+            display: inline-block;
+            background-color: var(--warning);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        
+        .nav-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+        
+        .week-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn {
+            background-color: var(--secondary);
             color: white;
             border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
             cursor: pointer;
-            font-weight: 500;
-            transition: background 0.2s;
+            transition: background-color 0.3s;
         }
         
-        button:hover {
-            background: #343a40;
+        .btn:hover {
+            background-color: #2980b9;
         }
         
-        button:disabled {
-            background: #6c757d;
+        .btn:disabled {
+            background-color: #bdc3c7;
             cursor: not-allowed;
         }
         
-        .admin-panel {
-            background: #e9ecef;
-            padding: 15px 20px;
-            border-bottom: 1px solid #dee2e6;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .week-display {
+            font-weight: bold;
+            font-size: 18px;
         }
         
-        .admin-controls {
+        .view-toggle {
             display: flex;
             gap: 10px;
-            align-items: center;
         }
         
-        .admin-btn {
+        .toggle-btn {
+            background-color: var(--light);
+            border: none;
             padding: 8px 15px;
-            font-size: 14px;
-            width: auto;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
         }
         
-        .save-btn {
-            background: #28a745;
+        .toggle-btn.active {
+            background-color: var(--secondary);
+            color: white;
         }
         
-        .save-btn:hover {
-            background: #218838;
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
         }
         
-        .lock-btn {
-            background: #dc3545;
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
         }
         
-        .lock-btn:hover {
-            background: #c82333;
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            transition: transform 0.3s;
         }
         
-        .unlock-btn {
-            background: #ffc107;
-            color: #212529;
+        .card:hover {
+            transform: translateY(-5px);
         }
         
-        .unlock-btn:hover {
-            background: #e0a800;
-        }
-        
-        .controls {
+        .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 20px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
         }
         
-        .week-navigation {
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .metric {
             display: flex;
-            align-items: center;
-            gap: 10px;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #eee;
         }
         
-        .nav-btn {
-            width: auto;
-            padding: 8px 12px;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        th, td {
-            border: 1px solid #dee2e6;
-            padding: 10px;
-            text-align: center;
-        }
-        
-        th {
-            background-color: #495057;
-            color: white;
+        .metric-label {
             font-weight: 500;
         }
         
-        .name-cell {
-            background-color: #f8f9fa;
-            font-weight: 600;
+        .metric-value {
+            font-weight: bold;
+            color: var(--secondary);
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 5px;
+        }
+        
+        .shift-distribution {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .shift-type {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .rift { background-color: #e74c3c; }
+        .central { background-color: #3498db; }
+        .d2 { background-color: #2ecc71; }
+        .d3 { background-color: #f39c12; }
+        .off { background-color: #95a5a6; }
+        
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .schedule-table th {
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 15px;
             text-align: left;
         }
         
-        .off-day {
-            background-color: #f8d7da;
-            color: #721c24;
-            font-weight: 500;
+        .schedule-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
         }
         
-        .assignable-day {
-            background-color: #ffffff;
-            cursor: pointer;
-            transition: background 0.1s;
+        .schedule-table tr:last-child td {
+            border-bottom: none;
         }
         
-        .assignable-day:hover {
-            background-color: #e9ecef;
+        .schedule-table tr:nth-child(even) {
+            background-color: #f9f9f9;
         }
         
-        .locked .assignable-day {
-            cursor: default;
-            background-color: #f8f9fa;
-            pointer-events: none;
+        .highlight-user {
+            background-color: #e8f4fc !important;
+            font-weight: bold;
         }
         
-        .view-only-notice {
-            background-color: #fff3cd;
-            color: #856404;
-            padding: 10px;
-            text-align: center;
-            border-bottom: 1px solid #ffeaa7;
+        .on-leave {
+            color: #95a5a6;
+            font-style: italic;
         }
         
-        .hidden {
-            display: none;
+        .team-updates {
+            background-color: #fff9e6;
+            border-left: 4px solid var(--warning);
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 0 5px 5px 0;
         }
         
-        .error-message {
-            color: #dc3545;
-            margin-top: 10px;
-        }
-        
-        .success-message {
-            color: #28a745;
-            margin-top: 10px;
-        }
-        
-        .loading {
-            opacity: 0.6;
-            pointer-events: none;
+        .team-updates h3 {
+            color: var(--warning);
+            margin-bottom: 5px;
         }
         
         footer {
             text-align: center;
+            margin-top: 30px;
             padding: 20px;
-            color: #6c757d;
-            font-size: 14px;
-            border-top: 1px solid #dee2e6;
-        }
-        
-        .region-D2 { background-color: #d1e7dd; }
-        .region-D3 { background-color: #cff4fc; }
-        .region-Central { background-color: #e2e3e5; }
-        .region-Rift { background-color: #f8d7da; }
-        .region-Others { background-color: #fff3cd; }
-        
-        .leave-notice {
-            background: #e7f3ff;
-            border: 1px solid #b3d9ff;
-            border-radius: 4px;
-            padding: 15px;
-            margin: 20px;
-            text-align: center;
-            font-weight: 500;
-        }
-        
-        .status-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-weight: 500;
-        }
-        
-        .status-editing {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .status-locked {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .sync-status {
-            font-size: 12px;
-            color: #6c757d;
-        }
-        
-        .session-info {
-            font-size: 12px;
-            color: #6c757d;
-            margin-top: 5px;
-        }
-
-        .on-leave {
-            background-color: #f8d7da !important;
-            color: #721c24;
-            font-weight: bold;
-        }
-
-        /* Analytics Styles */
-        .analytics-panel {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            margin: 20px;
-            padding: 20px;
-        }
-
-        .analytics-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #dee2e6;
-        }
-
-        .analytics-section {
-            margin-bottom: 25px;
-        }
-
-        .analytics-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #495057;
-            margin-bottom: 15px;
-        }
-
-        .workload-bar {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            padding: 8px;
-            background: white;
-            border-radius: 4px;
-            border-left: 4px solid #007bff;
-        }
-
-        .user-name {
-            width: 100px;
-            font-weight: 500;
-        }
-
-        .progress-container {
-            flex: 1;
-            background: #e9ecef;
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 0 15px;
-            height: 20px;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #28a745, #20c997);
-            transition: width 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        .percentage {
-            width: 60px;
-            text-align: right;
-            font-weight: 500;
-        }
-
-        .region-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 10px;
-        }
-
-        .region-stat {
-            background: white;
-            padding: 15px;
-            border-radius: 6px;
-            border-left: 4px solid;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .region-stat.D2 { border-left-color: #d1e7dd; }
-        .region-stat.D3 { border-left-color: #cff4fc; }
-        .region-stat.Central { border-left-color: #e2e3e5; }
-        .region-stat.Rift { border-left-color: #f8d7da; }
-        .region-stat.Others { border-left-color: #fff3cd; }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: 600;
-            color: #495057;
-        }
-
-        .stat-label {
-            font-size: 14px;
-            color: #6c757d;
-            margin-top: 5px;
-        }
-
-        .insight-card {
-            background: #e7f3ff;
-            border: 1px solid #b3d9ff;
-            border-radius: 6px;
-            padding: 15px;
-            margin-top: 15px;
-        }
-
-        .insight-title {
-            font-weight: 600;
-            color: #004085;
-            margin-bottom: 8px;
-        }
-
-        .insight-text {
-            color: #004085;
+            color: #7f8c8d;
             font-size: 14px;
         }
-
-        .warning-badge {
-            background: #fff3cd;
-            color: #856404;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
-            margin-left: 10px;
-        }
-
-        .good-badge {
-            background: #d1e7dd;
-            color: #0f5132;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
-            margin-left: 10px;
-        }
         
-        @media (max-width: 768px) {
-            .controls {
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            .admin-panel {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .admin-controls {
-                flex-direction: column;
-                width: 100%;
-            }
-            
-            .admin-btn {
-                width: 100%;
-            }
-            
-            th, td {
-                padding: 8px 5px;
-                font-size: 14px;
-            }
-
-            .region-stats {
-                grid-template-columns: 1fr;
-            }
-
-            .workload-bar {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .progress-container {
-                width: 100%;
-                margin: 8px 0;
-            }
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>DDS Ordering Desk Scheduler</h1>
-            <p>Weekly Duty Roster Management</p>
+            <div class="header-content">
+                <div>
+                    <h1>DDS Ordering Desk Scheduler</h1>
+                    <div class="subtitle">Weekly Duty Roster Management with Analytics</div>
+                </div>
+                <div class="user-info">
+                    <div class="user-name" id="loggedInUser">Emma (You)</div>
+                    <div class="user-status" id="userStatus">on leave until February 2026</div>
+                    <div class="mode-badge">View Only Mode - Locked by admin</div>
+                </div>
+            </div>
         </header>
         
-        <div id="loginView" class="login-container">
-            <h2>Login to Scheduler</h2>
-            <div class="login-form">
-                <select id="userSelect">
-                    <option value="">Select User</option>
-                    <option value="Ian">Ian (Admin)</option>
-                    <option value="Kim">Kim</option>
-                    <option value="Emma">Emma</option>
-                    <option value="Kevo">Kevo</option>
-                    <option value="Wendy">Wendy</option>
-                    <option value="Janet">Janet</option>
-                </select>
-                <input type="password" id="passwordInput" placeholder="Enter your day password">
-                <button id="loginBtn">Login</button>
-                <p id="loginMessage" class="error-message hidden"></p>
-                <p id="autoLoginMessage" class="session-info hidden"></p>
+        <div class="nav-controls">
+            <div class="week-nav">
+                <button class="btn" id="prevWeek">&lt; Previous</button>
+                <div class="week-display" id="weekDisplay">Week 1, 2023</div>
+                <button class="btn" id="nextWeek">Next &gt;</button>
+            </div>
+            
+            <div class="view-toggle">
+                <button class="toggle-btn active" id="scheduleViewBtn">Schedule View</button>
+                <button class="toggle-btn" id="analyticsViewBtn">Analytics View</button>
             </div>
         </div>
         
-        <div id="appView" class="hidden">
-            <!-- Admin Panel (only shown to Ian) -->
-            <div id="adminPanel" class="admin-panel hidden">
-                <strong>Admin Controls</strong>
-                <div class="admin-controls">
-                    <span class="status-indicator" id="statusIndicator">
-                        Status: <span id="statusText">Loading...</span>
-                    </span>
-                    <button id="saveBtn" class="admin-btn save-btn">Save to GitHub</button>
-                    <button id="lockRosterBtn" class="admin-btn lock-btn">Lock Roster</button>
-                    <button id="unlockRosterBtn" class="admin-btn unlock-btn">Unlock Roster</button>
-                    <span class="sync-status" id="syncStatus"></span>
-                </div>
-            </div>
-
-            <!-- View Only Notice -->
-            <div id="viewOnlyNotice" class="view-only-notice hidden">
-                <strong>View Only Mode - This roster has been locked by admin</strong>
-            </div>
-            
-            <div class="controls">
-                <div class="week-navigation">
-                    <button id="prevWeekBtn" class="nav-btn">&lt; Previous</button>
-                    <span id="weekDisplay">Week 1, 2023</span>
-                    <button id="nextWeekBtn" class="nav-btn">Next &gt;</button>
-                </div>
-                
-                <div>
-                    <span class="session-info">Logged in as: <strong id="currentUserDisplay"></strong></span>
-                    <button id="logoutBtn">Logout</button>
-                </div>
-            </div>
-
-            <!-- Team Analytics Panel (Admin Only) -->
-            <div id="analyticsPanel" class="analytics-panel hidden">
-                <div class="analytics-header">
-                    <h3 style="margin: 0;">📊 Team Analytics</h3>
-                    <span style="font-size: 14px; color: #6c757d;">Week <span id="analyticsWeekDisplay">1, 2023</span></span>
-                </div>
-                
-                <!-- Workload Distribution -->
-                <div class="analytics-section">
-                    <div class="analytics-title">Workload Distribution</div>
-                    <div id="workloadDistribution">
-                        <!-- Dynamically populated -->
-                    </div>
-                </div>
-
-                <!-- Region Coverage -->
-                <div class="analytics-section">
-                    <div class="analytics-title">Region Coverage</div>
-                    <div class="region-stats" id="regionCoverage">
-                        <!-- Dynamically populated -->
-                    </div>
-                </div>
-
-                <!-- Insights & Recommendations -->
-                <div class="analytics-section">
-                    <div class="analytics-title">Insights & Recommendations</div>
-                    <div id="analyticsInsights">
-                        <!-- Dynamically populated -->
-                    </div>
-                </div>
-            </div>
-            
-            <table id="scheduleTable">
+        <!-- Schedule View -->
+        <div id="scheduleView">
+            <table class="schedule-table">
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -568,712 +348,368 @@
                         <th>Sunday</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <!-- Rows will be populated by JavaScript -->
+                <tbody id="scheduleBody">
+                    <!-- Schedule will be populated by JavaScript -->
                 </tbody>
             </table>
-
-            <!-- Leave Notice -->
-            <div class="leave-notice">
-                📝 <strong>Team Updates:</strong> 
-                Emma is on leave from Wednesday until February 2026 • 
-                Janet returns on Saturday
+            
+            <div class="team-updates">
+                <h3>Team Updates</h3>
+                <p>Emma is on leave from Wednesday until February 2026 - Janet returns on Saturday</p>
             </div>
         </div>
-    </div>
-    
-    <footer>
-        <p>DDS Ordering Desk Scheduler v4.2 | Team Analytics | For authorized personnel only</p>
-    </footer>
-
-    <script>
-        // === Application Configuration ===
-        const TEAM_CONFIG = {
-            Ian: { password: "OFtFusGT", isAdmin: true, offDay: "Wednesday" },
-            Kim: { password: "Tuesday", offDay: "Tuesday" },
-            Emma: { password: "Sunday", offDay: "Sunday", onLeave: true },
-            Kevo: { password: "Thursday", offDay: "Thursday" },
-            Wendy: { password: "Saturday", offDay: "Saturday" },
-            Janet: { password: "Friday", offDay: "Friday" }
-        };
-
-        const REGIONS = ['D2', 'D3', 'Central', 'Rift', 'Others'];
-        const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         
-        // GitHub configuration - using your repository
-        const GITHUB_USERNAME = '1an226';
-        const GITHUB_REPO = 'dds-scheduler';
-        const ROSTER_FILE_PATH = 'roster-data.json';
-        const GITHUB_RAW_URL = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${GITHUB_REPO}/main/${ROSTER_FILE_PATH}`;
-        
-        // Session configuration
-        const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-        
-        // === Application State ===
-        let currentUser = null;
-        let isAdmin = false;
-        let isRosterLocked = false;
-        let currentWeek = 1;
-        let currentYear = 2023;
-        let scheduleData = {};
-        let lastSavedTime = null;
-
-        // === DOM Elements ===
-        let loginView, appView, userSelect, passwordInput, loginBtn, loginMessage, autoLoginMessage;
-        let logoutBtn, adminPanel, saveBtn, lockRosterBtn, unlockRosterBtn, statusText, statusIndicator;
-        let viewOnlyNotice, scheduleTable, weekDisplay, prevWeekBtn, nextWeekBtn, syncStatus, currentUserDisplay;
-        let analyticsPanel, analyticsWeekDisplay, workloadDistribution, regionCoverage, analyticsInsights;
-
-        // === Initialize DOM Elements ===
-        function initializeDOMElements() {
-            loginView = document.getElementById('loginView');
-            appView = document.getElementById('appView');
-            userSelect = document.getElementById('userSelect');
-            passwordInput = document.getElementById('passwordInput');
-            loginBtn = document.getElementById('loginBtn');
-            loginMessage = document.getElementById('loginMessage');
-            autoLoginMessage = document.getElementById('autoLoginMessage');
-            logoutBtn = document.getElementById('logoutBtn');
-            adminPanel = document.getElementById('adminPanel');
-            saveBtn = document.getElementById('saveBtn');
-            lockRosterBtn = document.getElementById('lockRosterBtn');
-            unlockRosterBtn = document.getElementById('unlockRosterBtn');
-            statusText = document.getElementById('statusText');
-            statusIndicator = document.getElementById('statusIndicator');
-            viewOnlyNotice = document.getElementById('viewOnlyNotice');
-            scheduleTable = document.getElementById('scheduleTable');
-            weekDisplay = document.getElementById('weekDisplay');
-            prevWeekBtn = document.getElementById('prevWeekBtn');
-            nextWeekBtn = document.getElementById('nextWeekBtn');
-            syncStatus = document.getElementById('syncStatus');
-            currentUserDisplay = document.getElementById('currentUserDisplay');
-            
-            // Analytics elements
-            analyticsPanel = document.getElementById('analyticsPanel');
-            analyticsWeekDisplay = document.getElementById('analyticsWeekDisplay');
-            workloadDistribution = document.getElementById('workloadDistribution');
-            regionCoverage = document.getElementById('regionCoverage');
-            analyticsInsights = document.getElementById('analyticsInsights');
-        }
-
-        // === Analytics Functions ===
-        function calculateTeamAnalytics() {
-            const userShifts = {};
-            const regionCounts = {};
-            let totalShifts = 0;
-
-            // Initialize counters
-            Object.keys(TEAM_CONFIG).forEach(user => {
-                userShifts[user] = 0;
-            });
-            REGIONS.forEach(region => {
-                regionCounts[region] = 0;
-            });
-
-            // Count shifts and regions
-            Object.keys(scheduleData).forEach(key => {
-                const [userName, day] = key.split('-');
-                const assignment = scheduleData[key];
+        <!-- Analytics View -->
+        <div id="analyticsView" class="hidden">
+            <div class="dashboard">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Your Shift Summary</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Total Shifts This Week</div>
+                        <div class="metric-value" id="totalShifts">6</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Days Working</div>
+                        <div class="metric-value" id="daysWorking">6</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Days Off</div>
+                        <div class="metric-value" id="daysOff">1</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Weekend Shifts</div>
+                        <div class="metric-value" id="weekendShifts">2</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Longest Work Streak</div>
+                        <div class="metric-value" id="workStreak">2 days</div>
+                    </div>
+                </div>
                 
-                if (assignment && assignment !== 'OFF' && assignment !== '?') {
-                    userShifts[userName] = (userShifts[userName] || 0) + 1;
-                    regionCounts[assignment] = (regionCounts[assignment] || 0) + 1;
-                    totalShifts++;
-                }
-            });
-
-            return { userShifts, regionCounts, totalShifts };
-        }
-
-        function updateAnalyticsPanel() {
-            if (!isAdmin) {
-                analyticsPanel.classList.add('hidden');
-                return;
-            }
-
-            analyticsPanel.classList.remove('hidden');
-            analyticsWeekDisplay.textContent = `${currentWeek}, ${currentYear}`;
-
-            const analytics = calculateTeamAnalytics();
-            updateWorkloadDistribution(analytics);
-            updateRegionCoverage(analytics);
-            updateAnalyticsInsights(analytics);
-        }
-
-        function updateWorkloadDistribution(analytics) {
-            workloadDistribution.innerHTML = '';
-            const { userShifts, totalShifts } = analytics;
-
-            Object.keys(userShifts).forEach(userName => {
-                const shifts = userShifts[userName];
-                const percentage = totalShifts > 0 ? Math.round((shifts / totalShifts) * 100) : 0;
-                
-                const workloadBar = document.createElement('div');
-                workloadBar.className = 'workload-bar';
-                
-                workloadBar.innerHTML = `
-                    <div class="user-name">${userName}</div>
-                    <div class="progress-container">
-                        <div class="progress-bar" style="width: ${percentage}%">
-                            ${percentage > 10 ? `${percentage}%` : ''}
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Your Shift Distribution</div>
+                    </div>
+                    <div class="shift-distribution">
+                        <div class="shift-type rift">Rift<br><span id="riftCount">1</span></div>
+                        <div class="shift-type central">Central<br><span id="centralCount">1</span></div>
+                        <div class="shift-type d2">D2<br><span id="d2Count">1</span></div>
+                        <div class="shift-type d3">D3<br><span id="d3Count">2</span></div>
+                        <div class="shift-type off">OFF<br><span id="offCount">1</span></div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <div class="metric">
+                            <div class="metric-label">Most Frequent Role</div>
+                            <div class="metric-value" id="frequentRole">D3</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Role Variety</div>
+                            <div class="metric-value" id="roleVariety">High</div>
                         </div>
                     </div>
-                    <div class="percentage">${shifts} shifts</div>
-                `;
-                
-                workloadDistribution.appendChild(workloadBar);
-            });
-        }
-
-        function updateRegionCoverage(analytics) {
-            regionCoverage.innerHTML = '';
-            const { regionCounts, totalShifts } = analytics;
-
-            REGIONS.forEach(region => {
-                const count = regionCounts[region] || 0;
-                const percentage = totalShifts > 0 ? Math.round((count / totalShifts) * 100) : 0;
-                
-                const regionStat = document.createElement('div');
-                regionStat.className = `region-stat ${region}`;
-                
-                regionStat.innerHTML = `
-                    <div class="stat-value">${percentage}%</div>
-                    <div class="stat-label">${region} Region</div>
-                    <div style="font-size: 12px; color: #6c757d; margin-top: 5px;">${count} shifts</div>
-                `;
-                
-                regionCoverage.appendChild(regionStat);
-            });
-        }
-
-        function updateAnalyticsInsights(analytics) {
-            analyticsInsights.innerHTML = '';
-            const { userShifts, regionCounts, totalShifts } = analytics;
-
-            // Calculate fairness score (standard deviation of workload)
-            const workloads = Object.values(userShifts);
-            const avgWorkload = workloads.reduce((a, b) => a + b, 0) / workloads.length;
-            const variance = workloads.reduce((a, b) => a + Math.pow(b - avgWorkload, 2), 0) / workloads.length;
-            const fairnessScore = Math.sqrt(variance);
-
-            // Generate insights
-            const insights = [];
-
-            // Workload fairness insight
-            if (fairnessScore > 2) {
-                insights.push({
-                    type: 'warning',
-                    title: 'Workload Imbalance Detected',
-                    text: 'Some team members are carrying significantly more shifts than others. Consider redistributing workload.'
-                });
-            } else {
-                insights.push({
-                    type: 'good',
-                    title: 'Balanced Workload',
-                    text: 'Workload is fairly distributed across the team.'
-                });
-            }
-
-            // Region coverage insight
-            const regionPercentages = REGIONS.map(region => (regionCounts[region] || 0) / totalShifts * 100);
-            const maxRegion = Math.max(...regionPercentages);
-            const minRegion = Math.min(...regionPercentages);
-
-            if (maxRegion - minRegion > 30) {
-                insights.push({
-                    type: 'warning',
-                    title: 'Region Coverage Imbalance',
-                    text: 'Some regions are significantly over or under-staffed. Consider adjusting region assignments.'
-                });
-            }
-
-            // Leave impact insight
-            const activeUsers = Object.keys(TEAM_CONFIG).filter(user => !TEAM_CONFIG[user].onLeave).length;
-            const totalUsers = Object.keys(TEAM_CONFIG).length;
-            
-            if (activeUsers < totalUsers) {
-                const leaveImpact = Math.round(((totalUsers - activeUsers) / totalUsers) * 100);
-                insights.push({
-                    type: 'warning',
-                    title: 'Leave Impact',
-                    text: `${leaveImpact}% of team is on leave. This reduces overall coverage capacity.`
-                });
-            }
-
-            // Render insights
-            insights.forEach(insight => {
-                const insightCard = document.createElement('div');
-                insightCard.className = 'insight-card';
-                
-                insightCard.innerHTML = `
-                    <div class="insight-title">
-                        ${insight.type === 'warning' ? '⚠️ ' : '✅ '}${insight.title}
-                        <span class="${insight.type === 'warning' ? 'warning-badge' : 'good-badge'}">
-                            ${insight.type === 'warning' ? 'Needs Attention' : 'Good'}
-                        </span>
-                    </div>
-                    <div class="insight-text">${insight.text}</div>
-                `;
-                
-                analyticsInsights.appendChild(insightCard);
-            });
-
-            // Add general stats
-            const statsCard = document.createElement('div');
-            statsCard.className = 'insight-card';
-            statsCard.style.background = '#d1e7dd';
-            statsCard.style.borderColor = '#badbcc';
-            
-            statsCard.innerHTML = `
-                <div class="insight-title" style="color: #0f5132;">📈 Weekly Summary</div>
-                <div class="insight-text" style="color: #0f5132;">
-                    • Total Shifts: <strong>${totalShifts}</strong><br>
-                    • Active Team Members: <strong>${activeUsers}/${totalUsers}</strong><br>
-                    • Regions Covered: <strong>${REGIONS.filter(region => regionCounts[region] > 0).length}</strong><br>
-                    • Workload Fairness: <strong>${fairnessScore.toFixed(1)}</strong> (lower is better)
                 </div>
-            `;
-            
-            analyticsInsights.appendChild(statsCard);
-        }
-
-        // === Session Management ===
-        function saveSession() {
-            const sessionData = {
-                user: currentUser,
-                timestamp: Date.now()
-            };
-            localStorage.setItem('ddsSession', JSON.stringify(sessionData));
-        }
-
-        function loadSession() {
-            try {
-                const sessionData = localStorage.getItem('ddsSession');
-                if (sessionData) {
-                    const parsed = JSON.parse(sessionData);
-                    const sessionAge = Date.now() - parsed.timestamp;
-                    
-                    if (sessionAge < SESSION_DURATION) {
-                        return parsed.user;
-                    } else {
-                        clearSession();
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading session:', error);
-                clearSession();
-            }
-            return null;
-        }
-
-        function clearSession() {
-            localStorage.removeItem('ddsSession');
-        }
-
-        function autoLogin() {
-            const savedUser = loadSession();
-            if (savedUser && TEAM_CONFIG[savedUser]) {
-                currentUser = savedUser;
-                isAdmin = TEAM_CONFIG[savedUser].isAdmin || false;
                 
-                autoLoginMessage.textContent = `Auto-logged in as ${savedUser}`;
-                autoLoginMessage.classList.remove('hidden');
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Team Workload Comparison</div>
+                    </div>
+                    <div id="teamWorkload">
+                        <!-- Team workload will be populated by JavaScript -->
+                    </div>
+                </div>
                 
-                setTimeout(() => {
-                    showAppInterface();
-                }, 1000);
-                
-                return true;
-            }
-            return false;
-        }
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Weekly Work Pattern</div>
+                    </div>
+                    <div id="workPattern">
+                        <!-- Work pattern will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Last saved: <span id="lastSaved">2025-10-05T19:23:19.919Z</span> | Updated by: <span id="updatedBy">Ian</span></p>
+        </footer>
+    </div>
 
-        // === GitHub Storage Functions ===
-        async function loadFromGitHub() {
-            try {
-                setLoading(true);
-                syncStatus.textContent = 'Loading from GitHub...';
-                
-                const response = await fetch(`${GITHUB_RAW_URL}?t=${Date.now()}`);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    scheduleData = data.scheduleData || {};
-                    isRosterLocked = data.isRosterLocked || false;
-                    currentWeek = data.currentWeek || 1;
-                    currentYear = data.currentYear || 2023;
-                    lastSavedTime = data.lastSavedTime || null;
-                    
-                    updateLockInterface();
-                    buildScheduleGrid();
-                    updateAnalyticsPanel();
-                    
-                    syncStatus.textContent = lastSavedTime ? `Last saved: ${new Date(lastSavedTime).toLocaleString()}` : 'No saved data yet';
-                } else if (response.status === 404) {
-                    syncStatus.textContent = 'No saved roster found. Start fresh or save as admin.';
-                    buildScheduleGrid();
-                    updateAnalyticsPanel();
-                } else {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-            } catch (error) {
-                console.error('Error loading from GitHub:', error);
-                syncStatus.textContent = 'Error loading from GitHub. Using local data.';
-                loadFromLocalStorage();
-            } finally {
-                setLoading(false);
-            }
-        }
+    <script>
+        // Sample data - in a real application, this would come from your backend
+        const scheduleData = {
+            "Ian-Monday": "Rift",
+            "Kim-Monday": "OFF",
+            "Kevo-Monday": "D2",
+            "Emma-Monday": "D3",
+            "Wendy-Monday": "Central",
+            "Ian-Tuesday": "Central",
+            "Emma-Tuesday": "OFF",
+            "Kevo-Tuesday": "Rift",
+            "Wendy-Tuesday": "D2",
+            "Kevo-Wednesday": "D3",
+            "Wendy-Wednesday": "Rift",
+            "Kim-Wednesday": "Central",
+            "Emma-Wednesday": "Rift",
+            "Emma-Thursday": "D2",
+            "Ian-Thursday": "Rift",
+            "Kim-Thursday": "D2",
+            "Wendy-Thursday": "D3",
+            "Kevo-Thursday": "Central",
+            "Wendy-Friday": "Central",
+            "Emma-Friday": "OFF",
+            "Kevo-Friday": "D2",
+            "Kim-Friday": "Rift",
+            "Ian-Friday": "D3",
+            "Ian-Saturday": "Central",
+            "Kim-Sunday": "Central",
+            "Kevo-Sunday": "OFF",
+            "Ian-Sunday": "D3",
+            "Wendy-Sunday": "D2",
+            "Emma-Saturday": "D3",
+            "Emma-Sunday": "Central",
+            "Kim-Saturday": "D3",
+            "Kevo-Saturday": "Rift",
+            "Kim-Tuesday": "D3",
+            "Ian-Wednesday": "D2",
+            "Janet-Saturday": "D2",
+            "Janet-Sunday": "Rift"
+        };
 
-        function saveToGitHub() {
-            const rosterData = {
-                scheduleData,
-                isRosterLocked,
-                currentWeek,
-                currentYear,
-                lastSavedTime: new Date().toISOString(),
-                updatedBy: currentUser
-            };
-            
-            const dataStr = JSON.stringify(rosterData, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(dataBlob);
-            link.download = 'roster-data.json';
-            link.click();
-            
-            showMessage(loginMessage, 
-                '✓ JSON file downloaded. Please upload it to your GitHub repository as "roster-data.json"', 
-                'success');
-            
-            syncStatus.textContent = 'Waiting for manual upload to GitHub...';
-            
-            setTimeout(() => {
-                loadFromGitHub();
-            }, 5000);
-        }
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        const users = ['Ian', 'Kim', 'Emma', 'Kevo', 'Wendy', 'Janet'];
+        const currentUser = 'Emma'; // This would be set based on login
 
-        // === Local Storage Fallback ===
-        function saveToLocalStorage() {
-            const dataToSave = {
-                scheduleData,
-                isRosterLocked,
-                currentWeek,
-                currentYear,
-                lastSavedTime: new Date().toISOString()
-            };
-            localStorage.setItem('ddsLocalData', JSON.stringify(dataToSave));
-        }
-
-        function loadFromLocalStorage() {
-            const savedData = localStorage.getItem('ddsLocalData');
-            if (savedData) {
-                const parsedData = JSON.parse(savedData);
-                scheduleData = parsedData.scheduleData || {};
-                isRosterLocked = parsedData.isRosterLocked || false;
-                currentWeek = parsedData.currentWeek || 1;
-                currentYear = parsedData.currentYear || 2023;
-                
-                updateLockInterface();
-                buildScheduleGrid();
-                updateAnalyticsPanel();
-            }
-        }
-
-        // === Initialization ===
+        // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded - initializing...');
-            initializeDOMElements();
+            renderSchedule();
+            renderAnalytics();
             setupEventListeners();
-            updateWeekDisplay();
-            
-            if (!autoLogin()) {
-                loginView.classList.remove('hidden');
-            }
         });
 
-        function setupEventListeners() {
-            if (loginBtn) loginBtn.addEventListener('click', handleLogin);
-            if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
-            if (saveBtn) saveBtn.addEventListener('click', saveToGitHub);
-            if (lockRosterBtn) lockRosterBtn.addEventListener('click', confirmLockRoster);
-            if (unlockRosterBtn) unlockRosterBtn.addEventListener('click', confirmUnlockRoster);
-            if (prevWeekBtn) prevWeekBtn.addEventListener('click', () => changeWeek(-1));
-            if (nextWeekBtn) nextWeekBtn.addEventListener('click', () => changeWeek(1));
+        function renderSchedule() {
+            const scheduleBody = document.getElementById('scheduleBody');
+            scheduleBody.innerHTML = '';
             
-            if (passwordInput) {
-                passwordInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') handleLogin();
-                });
-            }
-        }
-
-        // === Authentication ===
-        function handleLogin() {
-            const selectedUser = userSelect.value;
-            const password = passwordInput.value.trim();
-            
-            if (!selectedUser) {
-                showMessage(loginMessage, 'Please select a user', 'error');
-                return;
-            }
-            
-            const userConfig = TEAM_CONFIG[selectedUser];
-            
-            if (userConfig && userConfig.password === password) {
-                currentUser = selectedUser;
-                isAdmin = userConfig.isAdmin || false;
-                
-                saveSession();
-                showAppInterface();
-            } else {
-                showMessage(loginMessage, 'Incorrect password. Please try again.', 'error');
-            }
-        }
-
-        function handleLogout() {
-            currentUser = null;
-            isAdmin = false;
-            clearSession();
-            
-            appView.classList.add('hidden');
-            loginView.classList.remove('hidden');
-            userSelect.value = '';
-            passwordInput.value = '';
-            loginMessage.classList.add('hidden');
-            autoLoginMessage.classList.add('hidden');
-        }
-
-        async function showAppInterface() {
-            loginView.classList.add('hidden');
-            appView.classList.remove('hidden');
-            loginMessage.classList.add('hidden');
-            autoLoginMessage.classList.add('hidden');
-            
-            currentUserDisplay.textContent = currentUser + (isAdmin ? ' (Admin)' : '');
-            adminPanel.classList.toggle('hidden', !isAdmin);
-            
-            await loadFromGitHub();
-            updateLockInterface();
-        }
-
-        // === Schedule Grid Management ===
-        function buildScheduleGrid() {
-            const tbody = scheduleTable.querySelector('tbody');
-            if (!tbody) {
-                console.error('Table body not found!');
-                return;
-            }
-            tbody.innerHTML = '';
-            
-            scheduleTable.parentElement.classList.toggle('locked', isRosterLocked);
-            
-            Object.keys(TEAM_CONFIG).forEach(userName => {
-                const userConfig = TEAM_CONFIG[userName];
+            users.forEach(user => {
                 const row = document.createElement('tr');
+                if (user === currentUser) {
+                    row.classList.add('highlight-user');
+                }
                 
                 // Name cell
                 const nameCell = document.createElement('td');
-                nameCell.textContent = userName + (userName === currentUser ? ' (You)' : '');
-                nameCell.classList.add('name-cell');
-                
-                if (userName === 'Emma' && userConfig.onLeave) {
-                    nameCell.innerHTML += ' <span style="color: #856404; font-size: 0.8em;">(On Leave)</span>';
+                if (user === 'Emma') {
+                    nameCell.innerHTML = `${user} (You) <span class="on-leave">(on leave)</span>`;
+                } else if (user === 'Janet') {
+                    nameCell.innerHTML = `${user} <span class="on-leave">(returns Saturday)</span>`;
+                } else {
+                    nameCell.textContent = user;
                 }
-                
                 row.appendChild(nameCell);
                 
                 // Day cells
-                DAYS_OF_WEEK.forEach(day => {
-                    const cell = document.createElement('td');
-                    const cellKey = `${userName}-${day}`;
-                    const isOffDay = day === userConfig.offDay;
+                days.forEach(day => {
+                    const dayCell = document.createElement('td');
+                    const shift = scheduleData[`${user}-${day}`] || '•';
+                    dayCell.textContent = shift;
                     
-                    // Check if Emma is on leave (from Wednesday onward)
-                    const isOnLeave = userName === 'Emma' && userConfig.onLeave && 
-                                     DAYS_OF_WEEK.indexOf(day) >= DAYS_OF_WEEK.indexOf('Wednesday');
-                    
-                    let assignment = scheduleData[cellKey];
-                    
-                    if (isOnLeave) {
-                        // Emma on leave - red box
-                        cell.textContent = '●';
-                        cell.classList.add('on-leave');
-                        cell.title = 'On Leave';
-                    } else if (assignment) {
-                        // Existing assignment
-                        cell.textContent = assignment;
-                        if (assignment === 'OFF') {
-                            cell.classList.add('off-day');
-                        } else {
-                            cell.classList.add('assignable-day');
-                            cell.classList.add(`region-${assignment}`);
-                        }
-                    } else if (isOffDay) {
-                        // Regular off day
-                        cell.textContent = 'OFF';
-                        cell.classList.add('off-day');
-                    } else {
-                        // No assignment
-                        cell.textContent = '?';
-                        cell.classList.add('assignable-day');
+                    if (user === 'Emma' && (day === 'Wednesday' || day === 'Thursday' || day === 'Friday')) {
+                        dayCell.classList.add('on-leave');
                     }
                     
-                    cell.dataset.user = userName;
-                    cell.dataset.day = day;
-                    
-                    // Add interactions
-                    if (!isRosterLocked && !isOnLeave && (isAdmin || userName === currentUser)) {
-                        if (cell.textContent === 'OFF') {
-                            if (isAdmin) {
-                                cell.addEventListener('dblclick', handleOffDayToggle);
-                            }
-                        } else if (cell.textContent !== '●') {
-                            cell.addEventListener('click', handleRegionAssignment);
-                            if (isAdmin) {
-                                cell.addEventListener('dblclick', handleOffDayToggle);
-                            }
-                        }
-                    }
-                    
-                    row.appendChild(cell);
+                    row.appendChild(dayCell);
                 });
                 
-                tbody.appendChild(row);
+                scheduleBody.appendChild(row);
             });
-
-            // Update analytics after building grid
-            updateAnalyticsPanel();
         }
 
-        function handleRegionAssignment(event) {
-            if (isRosterLocked) return;
+        function renderAnalytics() {
+            // Calculate user-specific analytics
+            const userShifts = calculateUserShifts(currentUser);
             
-            const cell = event.target;
-            const userName = cell.dataset.user;
-            const day = cell.dataset.day;
+            // Update the analytics view with calculated data
+            document.getElementById('totalShifts').textContent = userShifts.totalShifts;
+            document.getElementById('daysWorking').textContent = userShifts.daysWorking;
+            document.getElementById('daysOff').textContent = userShifts.daysOff;
+            document.getElementById('weekendShifts').textContent = userShifts.weekendShifts;
+            document.getElementById('workStreak').textContent = userShifts.workStreak + ' days';
             
-            if (!isAdmin && userName !== currentUser) return;
+            document.getElementById('riftCount').textContent = userShifts.shiftCounts.Rift || 0;
+            document.getElementById('centralCount').textContent = userShifts.shiftCounts.Central || 0;
+            document.getElementById('d2Count').textContent = userShifts.shiftCounts.D2 || 0;
+            document.getElementById('d3Count').textContent = userShifts.shiftCounts.D3 || 0;
+            document.getElementById('offCount').textContent = userShifts.shiftCounts.OFF || 0;
             
-            const currentAssignment = cell.textContent;
-            const currentIndex = REGIONS.indexOf(currentAssignment);
-            const nextIndex = (currentIndex + 1) % REGIONS.length;
-            const nextAssignment = REGIONS[nextIndex];
+            document.getElementById('frequentRole').textContent = userShifts.mostFrequentRole;
+            document.getElementById('roleVariety').textContent = userShifts.roleVariety;
             
-            cell.textContent = nextAssignment;
-            REGIONS.forEach(region => cell.classList.remove(`region-${region}`));
-            cell.classList.add(`region-${nextAssignment}`);
+            // Render team workload
+            renderTeamWorkload();
             
-            scheduleData[`${userName}-${day}`] = nextAssignment;
-            
-            if (isAdmin) {
-                saveToLocalStorage();
-                updateAnalyticsPanel(); // Update analytics when admin makes changes
-            }
+            // Render work pattern
+            renderWorkPattern(currentUser);
         }
 
-        function handleOffDayToggle(event) {
-            if (isRosterLocked || !isAdmin) return;
+        function calculateUserShifts(user) {
+            const shifts = {};
+            let totalShifts = 0;
+            let daysWorking = 0;
+            let daysOff = 0;
+            let weekendShifts = 0;
+            let currentStreak = 0;
+            let maxStreak = 0;
+            const shiftCounts = { Rift: 0, Central: 0, D2: 0, D3: 0, OFF: 0 };
             
-            const cell = event.target;
-            const userName = cell.dataset.user;
-            const day = cell.dataset.day;
-            const cellKey = `${userName}-${day}`;
-            const isCurrentlyOff = cell.textContent === 'OFF';
+            days.forEach(day => {
+                const shift = scheduleData[`${user}-${day}`];
+                if (shift && shift !== 'OFF' && shift !== '•') {
+                    totalShifts++;
+                    daysWorking++;
+                    
+                    // Count weekend shifts
+                    if (day === 'Saturday' || day === 'Sunday') {
+                        weekendShifts++;
+                    }
+                    
+                    // Track current work streak
+                    currentStreak++;
+                    if (currentStreak > maxStreak) {
+                        maxStreak = currentStreak;
+                    }
+                    
+                    // Count shift types
+                    if (shiftCounts.hasOwnProperty(shift)) {
+                        shiftCounts[shift]++;
+                    }
+                } else if (shift === 'OFF') {
+                    daysOff++;
+                    currentStreak = 0;
+                } else {
+                    currentStreak = 0;
+                }
+            });
             
-            if (isCurrentlyOff) {
-                cell.textContent = '?';
-                cell.classList.remove('off-day');
-                cell.classList.add('assignable-day');
-                delete scheduleData[cellKey];
-                cell.addEventListener('click', handleRegionAssignment);
-            } else {
-                cell.textContent = 'OFF';
-                cell.classList.remove('assignable-day', ...REGIONS.map(r => `region-${r}`));
-                cell.classList.add('off-day');
-                scheduleData[cellKey] = 'OFF';
-                cell.removeEventListener('click', handleRegionAssignment);
-            }
-            
-            saveToLocalStorage();
-            updateAnalyticsPanel(); // Update analytics when admin makes changes
-        }
-
-        // === Roster Locking ===
-        function confirmLockRoster() {
-            if (confirm("Are you sure you want to lock the roster? Once locked, no changes can be made until unlocked.")) {
-                lockRoster();
-            }
-        }
-
-        function confirmUnlockRoster() {
-            if (confirm("Are you sure you want to unlock the roster? This will allow changes to be made.")) {
-                unlockRoster();
-            }
-        }
-
-        function lockRoster() {
-            isRosterLocked = true;
-            updateLockInterface();
-            buildScheduleGrid();
-            saveToLocalStorage();
-            saveToGitHub();
-        }
-
-        function unlockRoster() {
-            isRosterLocked = false;
-            updateLockInterface();
-            buildScheduleGrid();
-            saveToLocalStorage();
-        }
-
-        function updateLockInterface() {
-            if (isRosterLocked) {
-                statusText.textContent = "Locked";
-                statusIndicator.className = "status-indicator status-locked";
-            } else {
-                statusText.textContent = "Editing";
-                statusIndicator.className = "status-indicator status-editing";
+            // Determine most frequent role
+            let mostFrequentRole = 'None';
+            let maxCount = 0;
+            for (const role in shiftCounts) {
+                if (shiftCounts[role] > maxCount) {
+                    maxCount = shiftCounts[role];
+                    mostFrequentRole = role;
+                }
             }
             
-            if (lockRosterBtn) lockRosterBtn.disabled = isRosterLocked;
-            if (unlockRosterBtn) unlockRosterBtn.disabled = !isRosterLocked;
+            // Determine role variety
+            const roleTypes = Object.values(shiftCounts).filter(count => count > 0).length;
+            let roleVariety = 'Low';
+            if (roleTypes >= 4) roleVariety = 'High';
+            else if (roleTypes >= 2) roleVariety = 'Medium';
             
-            if (viewOnlyNotice) viewOnlyNotice.classList.toggle('hidden', !(isRosterLocked && !isAdmin));
+            return {
+                totalShifts,
+                daysWorking,
+                daysOff,
+                weekendShifts,
+                workStreak: maxStreak,
+                shiftCounts,
+                mostFrequentRole,
+                roleVariety
+            };
         }
 
-        // === Week Navigation ===
-        function changeWeek(weeks) {
-            currentWeek += weeks;
-            if (currentWeek > 52) {
-                currentWeek = 1;
-                currentYear++;
-            } else if (currentWeek < 1) {
-                currentWeek = 52;
-                currentYear--;
-            }
-            updateWeekDisplay();
-            loadFromGitHub();
+        function renderTeamWorkload() {
+            const teamWorkloadElement = document.getElementById('teamWorkload');
+            teamWorkloadElement.innerHTML = '';
+            
+            users.forEach(user => {
+                const userShifts = calculateUserShifts(user);
+                const metric = document.createElement('div');
+                metric.className = 'metric';
+                
+                const label = document.createElement('div');
+                label.className = 'metric-label';
+                label.textContent = user + (user === currentUser ? ' (You)' : '');
+                
+                const value = document.createElement('div');
+                value.className = 'metric-value';
+                value.textContent = userShifts.totalShifts + ' shifts';
+                
+                const progressBar = document.createElement('div');
+                progressBar.className = 'progress-bar';
+                
+                const progressFill = document.createElement('div');
+                progressFill.className = 'progress-fill';
+                // Calculate percentage (max 7 shifts in a week)
+                const percentage = (userShifts.totalShifts / 7) * 100;
+                progressFill.style.width = percentage + '%';
+                progressFill.style.backgroundColor = user === currentUser ? '#3498db' : '#2c3e50';
+                
+                progressBar.appendChild(progressFill);
+                
+                metric.appendChild(label);
+                metric.appendChild(value);
+                teamWorkloadElement.appendChild(metric);
+                teamWorkloadElement.appendChild(progressBar);
+            });
         }
 
-        function updateWeekDisplay() {
-            if (weekDisplay) weekDisplay.textContent = `Week ${currentWeek}, ${currentYear}`;
+        function renderWorkPattern(user) {
+            const workPatternElement = document.getElementById('workPattern');
+            workPatternElement.innerHTML = '';
+            
+            days.forEach(day => {
+                const shift = scheduleData[`${user}-${day}`];
+                const metric = document.createElement('div');
+                metric.className = 'metric';
+                
+                const label = document.createElement('div');
+                label.className = 'metric-label';
+                label.textContent = day;
+                
+                const value = document.createElement('div');
+                value.className = 'metric-value';
+                value.textContent = shift || '•';
+                
+                // Color code the shift type
+                if (shift === 'Rift') value.style.color = '#e74c3c';
+                else if (shift === 'Central') value.style.color = '#3498db';
+                else if (shift === 'D2') value.style.color = '#2ecc71';
+                else if (shift === 'D3') value.style.color = '#f39c12';
+                else if (shift === 'OFF') value.style.color = '#95a5a6';
+                
+                metric.appendChild(label);
+                metric.appendChild(value);
+                workPatternElement.appendChild(metric);
+            });
         }
 
-        // === Utility Functions ===
-        function showMessage(element, text, type) {
-            if (element) {
-                element.textContent = text;
-                element.classList.remove('hidden');
-                element.className = type === 'error' ? 'error-message' : 'success-message';
-            }
-        }
-
-        function setLoading(loading) {
-            document.body.classList.toggle('loading', loading);
+        function setupEventListeners() {
+            // View toggle buttons
+            document.getElementById('scheduleViewBtn').addEventListener('click', function() {
+                document.getElementById('scheduleView').classList.remove('hidden');
+                document.getElementById('analyticsView').classList.add('hidden');
+                document.getElementById('scheduleViewBtn').classList.add('active');
+                document.getElementById('analyticsViewBtn').classList.remove('active');
+            });
+            
+            document.getElementById('analyticsViewBtn').addEventListener('click', function() {
+                document.getElementById('scheduleView').classList.add('hidden');
+                document.getElementById('analyticsView').classList.remove('hidden');
+                document.getElementById('scheduleViewBtn').classList.remove('active');
+                document.getElementById('analyticsViewBtn').classList.add('active');
+            });
+            
+            // Week navigation buttons
+            document.getElementById('prevWeek').addEventListener('click', function() {
+                alert('Previous week data would load here');
+            });
+            
+            document.getElementById('nextWeek').addEventListener('click', function() {
+                alert('Next week data would load here');
+            });
         }
     </script>
 </body>
