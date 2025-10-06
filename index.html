@@ -13,6 +13,11 @@
             --danger: #e74c3c;
             --light: #ecf0f1;
             --dark: #34495e;
+            --rift: #e74c3c;
+            --central: #3498db;
+            --d2: #2ecc71;
+            --d3: #f39c12;
+            --off: #95a5a6;
         }
         
         * {
@@ -87,6 +92,16 @@
             margin-top: 10px;
         }
         
+        .admin-badge {
+            display: inline-block;
+            background-color: var(--success);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        
         .nav-controls {
             display: flex;
             justify-content: space-between;
@@ -118,9 +133,12 @@
             background-color: #2980b9;
         }
         
-        .btn:disabled {
-            background-color: #bdc3c7;
-            cursor: not-allowed;
+        .logout-btn {
+            background-color: var(--danger);
+        }
+        
+        .logout-btn:hover {
+            background-color: #c0392b;
         }
         
         .week-display {
@@ -128,34 +146,40 @@
             font-size: 18px;
         }
         
+        /* Schedule Table with Box Design */
         .schedule-table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 8px;
             margin-top: 20px;
-            background-color: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
         
         .schedule-table th {
             background-color: var(--primary);
             color: white;
-            padding: 12px 15px;
-            text-align: left;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            font-weight: 600;
         }
         
         .schedule-table td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #eee;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
         }
         
-        .schedule-table tr:last-child td {
-            border-bottom: none;
+        .schedule-table td:hover {
+            transform: translateY(-2px);
         }
         
-        .schedule-table tr:nth-child(even) {
-            background-color: #f9f9f9;
+        .user-cell {
+            font-weight: 600;
+            background-color: #f8f9fa !important;
+            text-align: left;
         }
         
         .highlight-user {
@@ -163,15 +187,52 @@
             font-weight: bold;
         }
         
+        /* Shift Type Box Styles */
+        .shift-rift {
+            background-color: var(--rift);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .shift-central {
+            background-color: var(--central);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .shift-d2 {
+            background-color: var(--d2);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .shift-d3 {
+            background-color: var(--d3);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .shift-off {
+            background-color: var(--off);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .shift-leave {
+            background-color: #fff9e6;
+            color: var(--warning);
+            border: 2px dashed var(--warning);
+            font-weight: bold;
+        }
+        
+        .shift-empty {
+            background-color: #f8f9fa;
+            color: #95a5a6;
+        }
+        
         .on-leave {
             color: #95a5a6;
             font-style: italic;
-        }
-        
-        .red-dot {
-            color: var(--danger);
-            font-weight: bold;
-            font-size: 18px;
         }
         
         .team-updates {
@@ -264,6 +325,20 @@
             color: #7f8c8d;
             font-size: 14px;
         }
+        
+        /* Admin Controls */
+        .admin-controls {
+            background-color: #e8f6f3;
+            border-left: 4px solid var(--success);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .admin-controls h3 {
+            color: var(--success);
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -278,12 +353,11 @@
                 <select id="userSelect">
                     <option value="">-- Choose User --</option>
                     <option value="Emma">Emma</option>
-                    <option value="Ian">Ian</option>
+                    <option value="Ian">Ian (Admin)</option>
                     <option value="Kim">Kim</option>
                     <option value="Kevo">Kevo</option>
                     <option value="Wendy">Wendy</option>
                     <option value="Janet">Janet</option>
-                    <option value="admin">Admin</option>
                 </select>
             </div>
             <div class="form-group">
@@ -294,7 +368,8 @@
         </div>
         
         <div class="demo-note">
-            Demo: Select any user and enter any password to login
+            <strong>Admin Login:</strong> Ian / OFtFusGT<br>
+            Other users: Any password works
         </div>
     </div>
 
@@ -307,12 +382,21 @@
                     <div class="subtitle">Weekly Duty Roster Management</div>
                 </div>
                 <div class="user-info">
-                    <div class="user-name" id="loggedInUser">Emma (You)</div>
-                    <div class="user-status" id="userStatus">on leave until February 2026</div>
-                    <div class="mode-badge">View Only Mode - Locked by admin</div>
+                    <div class="user-name" id="loggedInUser">User</div>
+                    <div class="user-status" id="userStatus">Status</div>
+                    <div class="mode-badge" id="modeBadge">View Only Mode - Locked by admin</div>
+                    <div class="admin-badge hidden" id="adminBadge">Administrator</div>
                 </div>
             </div>
         </header>
+        
+        <!-- Admin Controls (only for Ian) -->
+        <div id="adminControls" class="admin-controls hidden">
+            <h3>Admin Controls</h3>
+            <p>You can edit schedules, manage users, and view analytics</p>
+            <button class="btn" style="margin-right: 10px;">Edit Schedule</button>
+            <button class="btn">View Analytics</button>
+        </div>
         
         <div class="nav-controls">
             <div class="week-nav">
@@ -320,7 +404,7 @@
                 <div class="week-display">Week 1, 2023</div>
                 <button class="btn">Next &gt;</button>
             </div>
-            <button class="btn" onclick="logout()" style="background-color: var(--danger);">Logout</button>
+            <button class="btn logout-btn" onclick="logout()">Logout</button>
         </div>
         
         <table class="schedule-table">
@@ -343,7 +427,7 @@
         
         <div class="team-updates">
             <h3>Team Updates</h3>
-            <p>Emma is on leave from Wednesday until February 2026 - Janet returns on Saturday</p>
+            <p id="teamUpdatesText">Emma is on leave from Wednesday until February 2026 - Janet returns on Saturday</p>
         </div>
         
         <footer>
@@ -352,44 +436,24 @@
     </div>
 
     <script>
-        // Schedule data
+        // User credentials
+        const userCredentials = {
+            'Ian': 'OFtFusGT',
+            'Emma': 'any',
+            'Kim': 'any', 
+            'Kevo': 'any',
+            'Wendy': 'any',
+            'Janet': 'any'
+        };
+
+        // Schedule data with box styling
         const scheduleData = {
-            "Ian-Monday": "Rift",
-            "Kim-Monday": "OFF",
-            "Kevo-Monday": "D2",
-            "Emma-Monday": "D3",
-            "Wendy-Monday": "Central",
-            "Ian-Tuesday": "Central",
-            "Emma-Tuesday": "OFF",
-            "Kevo-Tuesday": "Rift",
-            "Wendy-Tuesday": "D2",
-            "Kevo-Wednesday": "D3",
-            "Wendy-Wednesday": "Rift",
-            "Kim-Wednesday": "Central",
-            "Emma-Wednesday": "•",
-            "Emma-Thursday": "•",
-            "Ian-Thursday": "Rift",
-            "Kim-Thursday": "D2",
-            "Wendy-Thursday": "D3",
-            "Kevo-Thursday": "Central",
-            "Wendy-Friday": "Central",
-            "Emma-Friday": "•",
-            "Kevo-Friday": "D2",
-            "Kim-Friday": "Rift",
-            "Ian-Friday": "D3",
-            "Ian-Saturday": "Central",
-            "Kim-Sunday": "Central",
-            "Kevo-Sunday": "OFF",
-            "Ian-Sunday": "D3",
-            "Wendy-Sunday": "D2",
-            "Emma-Saturday": "•",
-            "Emma-Sunday": "•",
-            "Kim-Saturday": "D3",
-            "Kevo-Saturday": "Rift",
-            "Kim-Tuesday": "D3",
-            "Ian-Wednesday": "D2",
-            "Janet-Saturday": "D2",
-            "Janet-Sunday": "Rift"
+            'Ian': ['Rift', 'Central', 'D2', 'Rift', 'D3', 'Central', 'D3'],
+            'Kim': ['OFF', 'D3', 'Central', 'D2', 'Rift', 'D3', 'Central'],
+            'Emma': ['D3', 'OFF', '•', '•', '•', '•', '•'],
+            'Kevo': ['D2', 'Rift', 'D3', 'Central', 'D2', 'Rift', 'OFF'],
+            'Wendy': ['Central', 'D2', 'Rift', 'D3', 'Central', '•', 'D2'],
+            'Janet': ['•', '•', '•', '•', '•', 'D2', 'Rift']
         };
 
         const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -419,29 +483,66 @@
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
             
+            // Custom experience based on user
+            setupUserExperience();
+            renderSchedule();
+        }
+
+        function setupUserExperience() {
+            const isAdmin = currentUser === 'Ian';
+            
             // Update user display
             document.getElementById('loggedInUser').textContent = 
-                currentUser === 'Emma' ? 'Emma (You)' : currentUser;
+                currentUser + (currentUser === 'Emma' ? ' (You)' : (isAdmin ? ' (Admin)' : ''));
             
+            // User-specific status
             if (currentUser === 'Emma') {
                 document.getElementById('userStatus').textContent = 'on leave until February 2026';
+                document.getElementById('teamUpdatesText').innerHTML = 
+                    '<strong>You are on leave</strong> from Wednesday until February 2026';
+            } else if (isAdmin) {
+                document.getElementById('userStatus').textContent = 'Administrator';
+                document.getElementById('teamUpdatesText').innerHTML = 
+                    '<strong>Admin View:</strong> Emma is on leave from Wednesday until February 2026 - Janet returns on Saturday';
             } else {
                 document.getElementById('userStatus').textContent = 'viewing roster';
             }
             
-            renderSchedule();
+            // Admin controls
+            if (isAdmin) {
+                document.getElementById('adminBadge').classList.remove('hidden');
+                document.getElementById('adminControls').classList.remove('hidden');
+                document.getElementById('modeBadge').textContent = 'Admin Mode - Full Access';
+            } else {
+                document.getElementById('adminBadge').classList.add('hidden');
+                document.getElementById('adminControls').classList.add('hidden');
+                document.getElementById('modeBadge').textContent = 'View Only Mode - Locked by admin';
+            }
         }
 
         function login() {
             const userSelect = document.getElementById('userSelect');
             const password = document.getElementById('password').value;
+            const selectedUser = userSelect.value;
             
-            if (userSelect.value && password) {
-                currentUser = userSelect.value;
+            if (!selectedUser) {
+                alert('Please select a user');
+                return;
+            }
+            
+            if (!password) {
+                alert('Please enter password');
+                return;
+            }
+            
+            // Check credentials
+            const correctPassword = userCredentials[selectedUser];
+            if (correctPassword === 'any' || password === correctPassword) {
+                currentUser = selectedUser;
                 localStorage.setItem('currentUser', currentUser);
                 showMainApp();
             } else {
-                alert('Please select a user and enter password');
+                alert('Invalid password for ' + selectedUser);
             }
         }
 
@@ -465,32 +566,32 @@
                 
                 // Name cell
                 const nameCell = document.createElement('td');
+                nameCell.className = 'user-cell';
                 if (user === 'Emma') {
                     nameCell.innerHTML = `${user} ${currentUser === 'Emma' ? '(You)' : ''} <span class="on-leave">(on leave)</span>`;
                 } else if (user === 'Janet') {
                     nameCell.innerHTML = `${user} <span class="on-leave">(returns Saturday)</span>`;
+                } else if (user === 'Ian') {
+                    nameCell.innerHTML = `${user} ${currentUser === 'Ian' ? '(Admin)' : ''}`;
                 } else {
                     nameCell.textContent = user;
                 }
                 row.appendChild(nameCell);
                 
-                // Day cells
-                days.forEach(day => {
+                // Day cells with box styling
+                scheduleData[user].forEach((shift, index) => {
                     const dayCell = document.createElement('td');
-                    let shift = scheduleData[`${user}-${day}`] || '•';
                     
-                    // Special handling for Emma's leave days
-                    if (user === 'Emma' && (day === 'Wednesday' || day === 'Thursday' || day === 'Friday' || day === 'Saturday' || day === 'Sunday')) {
-                        shift = '•';
-                        dayCell.innerHTML = '<span class="red-dot">•</span>';
-                    } else {
-                        dayCell.textContent = shift;
-                    }
+                    // Apply box styling based on shift type
+                    if (shift === 'Rift') dayCell.className = 'shift-rift';
+                    else if (shift === 'Central') dayCell.className = 'shift-central';
+                    else if (shift === 'D2') dayCell.className = 'shift-d2';
+                    else if (shift === 'D3') dayCell.className = 'shift-d3';
+                    else if (shift === 'OFF') dayCell.className = 'shift-off';
+                    else if (shift === '•') dayCell.className = 'shift-leave';
+                    else dayCell.className = 'shift-empty';
                     
-                    if (user === 'Emma' && shift === 'OFF') {
-                        dayCell.classList.add('on-leave');
-                    }
-                    
+                    dayCell.textContent = shift;
                     row.appendChild(dayCell);
                 });
                 
@@ -502,4 +603,4 @@
         document.addEventListener('DOMContentLoaded', initializePage);
     </script>
 </body>
-</html>    
+</html>
