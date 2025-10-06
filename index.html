@@ -5,166 +5,210 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DDS Ordering Desk Scheduler</title>
     <style>
-        :root {
-            --primary: #2c3e50;
-            --secondary: #3498db;
-            --warning: #f39c12;
-            --light: #ecf0f1;
-        }
-        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
         }
         
         body {
-            background-color: #f5f7fa;
-            color: #333;
-            line-height: 1.6;
+            background-color: #f5f5f5;
             padding: 20px;
+            color: #333;
         }
         
         .container {
-            max-width: 1000px;
+            max-width: 900px;
             margin: 0 auto;
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-        
-        header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
             padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         
         h1 {
             font-size: 24px;
             margin-bottom: 5px;
+            color: #2c3e50;
         }
         
         .subtitle {
             font-size: 14px;
-            opacity: 0.9;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .user-info {
+            background-color: #e8f4fc;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .view-only {
+            background-color: #fff9e6;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border-left: 4px solid #f39c12;
+            font-weight: bold;
         }
         
         .nav-controls {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: white;
-            padding: 15px 20px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .week-nav {
-            display: flex;
             align-items: center;
             gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px 0;
         }
         
-        .btn {
-            background-color: var(--secondary);
+        .nav-btn {
+            background: none;
+            border: 1px solid #ccc;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        
+        .week-display {
+            font-weight: bold;
+            margin: 0 10px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        
+        .current-user {
+            background-color: #e8f4fc;
+            font-weight: bold;
+        }
+        
+        .empty-cell {
+            background-color: #f9f9f9;
+        }
+        
+        .logout-btn {
+            background-color: #e74c3c;
             color: white;
             border: none;
             padding: 8px 15px;
             border-radius: 4px;
             cursor: pointer;
+            float: right;
+            margin-top: 10px;
         }
         
-        .week-display {
-            font-weight: bold;
-            font-size: 18px;
+        .logout-btn:hover {
+            background-color: #c0392b;
         }
         
-        .schedule-table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: white;
+        /* Login page styles */
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
         }
         
-        .schedule-table th {
-            background-color: var(--primary);
-            color: white;
-            padding: 12px 15px;
+        .login-form {
+            margin-top: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
             text-align: left;
         }
         
-        .schedule-table td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .schedule-table tr:last-child td {
-            border-bottom: none;
-        }
-        
-        .schedule-table tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        
-        .current-user {
-            background-color: #e8f4fc !important;
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
             font-weight: bold;
         }
         
-        .on-leave-cell {
-            color: #95a5a6;
-            font-style: italic;
-            text-decoration: line-through;
-            opacity: 0.6;
+        .form-group input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
         
-        .footer {
-            text-align: center;
-            padding: 20px;
-            color: #7f8c8d;
-            font-size: 14px;
-            border-top: 1px solid #eee;
-            background-color: #f8f9fa;
-        }
-        
-        .warning-banner {
-            background-color: #fff9e6;
-            border-left: 4px solid var(--warning);
-            padding: 15px 20px;
-            margin: 0;
-        }
-        
-        .user-status {
-            background-color: #e8f4fc;
+        .login-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
             padding: 10px 20px;
-            border-bottom: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+        
+        .login-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>DDS Ordering Desk Scheduler</h1>
-            <div class="subtitle">Weekly Duty Roster Management</div>
-        </header>
+    <!-- Login Page (shown when not logged in) -->
+    <div id="loginPage" class="login-container">
+        <h1>DDS Ordering Desk Scheduler</h1>
+        <div class="subtitle">Please login to continue</div>
         
-        <div class="user-status">
-            <strong>Emma (You)</strong> - on leave until February 2026
+        <div class="login-form">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" placeholder="Enter your username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Enter your password">
+            </div>
+            <button class="login-btn" onclick="login()">Login</button>
         </div>
         
-        <div class="warning-banner">
-            <strong>View Only Mode</strong> - This roster has been locked by admin
+        <div style="margin-top: 20px; font-size: 12px; color: #666;">
+            Demo: Use any username/password to login
         </div>
+    </div>
+
+    <!-- Main Application (shown when logged in) -->
+    <div id="mainApp" class="container hidden">
+        <h1>DDS Ordering Desk Scheduler</h1>
+        <div class="subtitle">Weekly Duty Roster Management</div>
+        
+        <div class="user-info" id="userDisplay">Emma (You) - on leave until February 2026</div>
+        <div class="view-only">View Only Mode - This roster has been locked by admin</div>
         
         <div class="nav-controls">
-            <div class="week-nav">
-                <button class="btn">&lt; Previous</button>
-                <div class="week-display">Week 1, 2023</div>
-                <button class="btn">Next &gt;</button>
-            </div>
+            <button class="nav-btn">Previous</button>
+            <div class="week-display">Week 1, 2023</div>
+            <button class="nav-btn">Next ></button>
         </div>
         
-        <table class="schedule-table">
+        <table>
             <thead>
                 <tr>
                     <th>Name</th>
@@ -202,11 +246,11 @@
                     <td>Emma (You)</td>
                     <td>D3</td>
                     <td>OFF</td>
-                    <td class="on-leave-cell">Rift</td>
-                    <td class="on-leave-cell">D2</td>
-                    <td class="on-leave-cell">OFF</td>
-                    <td class="on-leave-cell">D3</td>
-                    <td class="on-leave-cell">Central</td>
+                    <td>Rift</td>
+                    <td>D2</td>
+                    <td>OFF</td>
+                    <td>D3</td>
+                    <td>Central</td>
                 </tr>
                 <tr>
                     <td>Kevo</td>
@@ -225,33 +269,92 @@
                     <td>Rift</td>
                     <td>D3</td>
                     <td>Central</td>
-                    <td>•</td>
                     <td>D2</td>
+                    <td class="empty-cell"></td>
                 </tr>
                 <tr>
                     <td>Janet</td>
-                    <td>•</td>
-                    <td>•</td>
-                    <td>•</td>
-                    <td>•</td>
-                    <td>•</td>
-                    <td>D2</td>
-                    <td>Rift</td>
+                    <td class="empty-cell"></td>
+                    <td class="empty-cell"></td>
+                    <td class="empty-cell"></td>
+                    <td class="empty-cell"></td>
+                    <td class="empty-cell"></td>
+                    <td class="empty-cell"></td>
+                    <td class="empty-cell"></td>
                 </tr>
             </tbody>
         </table>
         
-        <div class="footer">
-            <p><strong>Note:</strong> You are on leave from Wednesday until February 2026. Wednesday-Sunday shifts are not active.</p>
-            <p>Last updated by Admin</p>
-        </div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
 
     <script>
-        // Explanation of the data inconsistency
-        console.log("Data Issue: Emma is marked as 'on leave' but has shifts scheduled Wednesday-Sunday");
-        console.log("Resolution: Only Monday shift (D3) is active. Tuesday OFF is pre-leave. Wednesday onward is leave period.");
-        console.log("Actual working days for Emma: 1 (Monday only)");
+        // Check if user is logged in
+        function checkLogin() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            const username = localStorage.getItem('username');
+            
+            if (isLoggedIn === 'true' && username) {
+                showMainApp(username);
+            } else {
+                showLoginPage();
+            }
+        }
+        
+        // Show login page
+        function showLoginPage() {
+            document.getElementById('loginPage').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+        }
+        
+        // Show main application
+        function showMainApp(username) {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            
+            // Update user display based on who logged in
+            if (username === 'Emma') {
+                document.getElementById('userDisplay').textContent = 'Emma (You) - on leave until February 2026';
+            } else {
+                document.getElementById('userDisplay').textContent = username + ' - Viewing Roster';
+            }
+        }
+        
+        // Login function
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username && password) {
+                // Store login state
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('username', username);
+                
+                // Show main application
+                showMainApp(username);
+            } else {
+                alert('Please enter both username and password');
+            }
+        }
+        
+        // Logout function
+        function logout() {
+            // Clear login state
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('username');
+            
+            // Show login page
+            showLoginPage();
+            
+            // Clear form fields
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLogin();
+        });
     </script>
 </body>
 </html>
