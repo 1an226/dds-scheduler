@@ -318,6 +318,12 @@
             margin-bottom: 15px;
             font-weight: bold;
         }
+
+        .date-range {
+            font-size: 16px;
+            color: #666;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -383,7 +389,10 @@
         <div class="nav-controls">
             <div class="week-nav">
                 <button class="btn">&lt; Previous</button>
-                <div class="week-display">Week 1, 2023</div>
+                <div>
+                    <div class="week-display">Week 41, 2025</div>
+                    <div class="date-range">6th Oct - 12th Oct 2025</div>
+                </div>
                 <button class="btn">Next &gt;</button>
             </div>
             <div>
@@ -396,13 +405,13 @@
             <thead>
                 <tr>
                     <th>Name</th>
-                    <th>Monday</th>
-                    <th>Tuesday</th>
-                    <th>Wednesday</th>
-                    <th>Thursday</th>
-                    <th>Friday</th>
-                    <th>Saturday</th>
-                    <th>Sunday</th>
+                    <th>Monday<br>6th Oct</th>
+                    <th>Tuesday<br>7th Oct</th>
+                    <th>Wednesday<br>8th Oct</th>
+                    <th>Thursday<br>9th Oct</th>
+                    <th>Friday<br>10th Oct</th>
+                    <th>Saturday<br>11th Oct</th>
+                    <th>Sunday<br>12th Oct</th>
                 </tr>
             </thead>
             <tbody id="scheduleBody">
@@ -432,9 +441,9 @@
         // User credentials
         const userCredentials = {
             'Ian': 'OFtFusGT',
-            'Kim': 'Tuesday',
-            'Emma': 'Sunday',
-            'Kevo': 'Thursday',
+            'Kim': 'Monday',
+            'Emma': 'Tuesday',
+            'Kevo': 'Sunday',
             'Wendy': 'Saturday',
             'Janet': 'Friday'
         };
@@ -562,8 +571,9 @@
                     "Janet-Sunday": "Rift"
                 },
                 isRosterLocked: isRosterLocked,
-                currentWeek: 1,
-                currentYear: 2023,
+                currentWeek: 41,
+                currentYear: 2025,
+                dateRange: "6th Oct - 12th Oct 2025",
                 lastSavedTime: new Date().toISOString(),
                 updatedBy: currentUser
             };
@@ -576,7 +586,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `roster_week1_2023_${new Date().getTime()}.json`;
+            a.download = `roster_week41_2025_${new Date().getTime()}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
