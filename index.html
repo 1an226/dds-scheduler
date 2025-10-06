@@ -89,6 +89,19 @@
             padding: 8px 15px;
             border-radius: 4px;
             cursor: pointer;
+            margin: 0 5px;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
         }
         
         .analytics-btn {
@@ -102,6 +115,20 @@
         .week-display {
             font-weight: bold;
             font-size: 18px;
+        }
+
+        /* Admin Controls */
+        .admin-controls {
+            background-color: #e8f6f3;
+            border-left: 4px solid var(--success);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .admin-controls h3 {
+            color: var(--success);
+            margin-bottom: 10px;
         }
 
         /* Schedule Table */
@@ -218,7 +245,7 @@
             text-align: center;
         }
 
-        /* Analytics Modal - FIXED */
+        /* Analytics Modal */
         .analytics-modal {
             position: fixed;
             top: 0;
@@ -281,6 +308,16 @@
             font-weight: bold;
             color: var(--secondary);
         }
+
+        .locked-banner {
+            background-color: var(--warning);
+            color: white;
+            padding: 10px;
+            text-align: center;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -328,6 +365,21 @@
             </div>
         </header>
         
+        <!-- Admin Controls (only for Ian) -->
+        <div id="adminControls" class="admin-controls hidden">
+            <h3>Admin Controls</h3>
+            <p>You can lock/unlock the roster and export data</p>
+            <button class="btn btn-success" onclick="lockRoster()">Lock Roster</button>
+            <button class="btn btn-warning" onclick="unlockRoster()">Unlock Roster</button>
+            <button class="btn btn-danger" onclick="downloadJSON()">Export JSON</button>
+            <button class="btn analytics-btn" onclick="showAnalytics()">Team Analytics</button>
+        </div>
+
+        <!-- Locked Banner -->
+        <div id="lockedBanner" class="locked-banner hidden">
+            🔒 Roster Locked - View Only Mode
+        </div>
+        
         <div class="nav-controls">
             <div class="week-nav">
                 <button class="btn">&lt; Previous</button>
@@ -335,7 +387,7 @@
                 <button class="btn">Next &gt;</button>
             </div>
             <div>
-                <button class="btn analytics-btn" onclick="showAnalytics()">My Analytics</button>
+                <button class="btn analytics-btn" onclick="showAnalytics()" id="userAnalyticsBtn">My Analytics</button>
                 <button class="btn logout-btn" onclick="logout()">Logout</button>
             </div>
         </div>
@@ -365,7 +417,7 @@
         </div>
     </div>
 
-    <!-- Analytics Modal - FIXED -->
+    <!-- Analytics Modal -->
     <div id="analyticsModal" class="analytics-modal">
         <div class="analytics-content">
             <button class="close-btn" onclick="hideAnalytics()">&times;</button>
@@ -380,9 +432,9 @@
         // User credentials
         const userCredentials = {
             'Ian': 'OFtFusGT',
-            'Kim': 'Monday',
-            'Emma': 'Tuesday',
-            'Kevo': 'Sunday',
+            'Kim': 'Tuesday',
+            'Emma': 'Sunday',
+            'Kevo': 'Thursday',
             'Wendy': 'Saturday',
             'Janet': 'Friday'
         };
@@ -399,9 +451,11 @@
 
         const users = ['Ian', 'Kim', 'Emma', 'Kevo', 'Wendy', 'Janet'];
         let currentUser = '';
+        let isRosterLocked = true; // Default to locked
 
         function initializePage() {
             checkLogin();
+            updateLockedState();
         }
 
         function checkLogin() {
@@ -422,13 +476,113 @@
             document.getElementById('mainApp').classList.remove('hidden');
             setupUserExperience();
             renderSchedule();
+            updateLockedState();
         }
 
         function setupUserExperience() {
+            const isAdmin = currentUser === 'Ian';
+            
             document.getElementById('loggedInUser').textContent = 
-                currentUser + (currentUser === 'Emma' ? ' (You)' : '');
+                currentUser + (currentUser === 'Emma' ? ' (You)' : (isAdmin ? ' (Admin)' : ''));
             document.getElementById('userStatus').textContent = 
                 currentUser === 'Emma' ? 'on leave until February 2026' : 'viewing roster';
+            
+            // Show admin controls only for Ian
+            if (isAdmin) {
+                document.getElementById('adminControls').classList.remove('hidden');
+                document.getElementById('userAnalyticsBtn').textContent = 'Team Analytics';
+            } else {
+                document.getElementById('adminControls').classList.add('hidden');
+                document.getElementById('userAnalyticsBtn').textContent = 'My Analytics';
+            }
+        }
+
+        function updateLockedState() {
+            const lockedBanner = document.getElementById('lockedBanner');
+            if (isRosterLocked) {
+                lockedBanner.classList.remove('hidden');
+            } else {
+                lockedBanner.classList.add('hidden');
+            }
+        }
+
+        // Admin Functions
+        function lockRoster() {
+            isRosterLocked = true;
+            updateLockedState();
+            alert('Roster locked! All users now have view-only access.');
+            downloadJSON(); // Automatically download JSON when locked
+        }
+
+        function unlockRoster() {
+            isRosterLocked = false;
+            updateLockedState();
+            alert('Roster unlocked! Admin can now make changes.');
+        }
+
+        function downloadJSON() {
+            // Create the JSON data structure
+            const jsonData = {
+                scheduleData: {
+                    "Ian-Monday": "Rift",
+                    "Kim-Monday": "OFF",
+                    "Kevo-Monday": "D2",
+                    "Emma-Monday": "D3",
+                    "Wendy-Monday": "Central",
+                    "Ian-Tuesday": "Central",
+                    "Emma-Tuesday": "OFF",
+                    "Kevo-Tuesday": "Rift",
+                    "Wendy-Tuesday": "D2",
+                    "Kevo-Wednesday": "D3",
+                    "Wendy-Wednesday": "Rift",
+                    "Kim-Wednesday": "Central",
+                    "Emma-Wednesday": "Rift",
+                    "Emma-Thursday": "D2",
+                    "Ian-Thursday": "Rift",
+                    "Kim-Thursday": "D2",
+                    "Wendy-Thursday": "D3",
+                    "Kevo-Thursday": "Central",
+                    "Wendy-Friday": "Central",
+                    "Emma-Friday": "OFF",
+                    "Kevo-Friday": "D2",
+                    "Kim-Friday": "Rift",
+                    "Ian-Friday": "D3",
+                    "Ian-Saturday": "Central",
+                    "Kim-Sunday": "Central",
+                    "Kevo-Sunday": "OFF",
+                    "Ian-Sunday": "D3",
+                    "Wendy-Sunday": "D2",
+                    "Emma-Saturday": "D3",
+                    "Emma-Sunday": "Central",
+                    "Kim-Saturday": "D3",
+                    "Kevo-Saturday": "Rift",
+                    "Kim-Tuesday": "D3",
+                    "Ian-Wednesday": "D2",
+                    "Janet-Saturday": "D2",
+                    "Janet-Sunday": "Rift"
+                },
+                isRosterLocked: isRosterLocked,
+                currentWeek: 1,
+                currentYear: 2023,
+                lastSavedTime: new Date().toISOString(),
+                updatedBy: currentUser
+            };
+
+            // Convert to JSON string
+            const jsonString = JSON.stringify(jsonData, null, 2);
+            
+            // Create download link
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `roster_week1_2023_${new Date().getTime()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('JSON file downloaded! You can now upload this to GitHub.');
         }
 
         function login() {
@@ -508,14 +662,18 @@
             });
         }
 
-        // FIXED Analytics Functions
         function showAnalytics() {
             const modal = document.getElementById('analyticsModal');
             const title = document.getElementById('analyticsTitle');
             const content = document.getElementById('analyticsContent');
             
-            title.textContent = currentUser + "'s Analytics";
-            content.innerHTML = generateUserAnalytics(currentUser);
+            if (currentUser === 'Ian') {
+                title.textContent = 'Team Analytics - Admin View';
+                content.innerHTML = generateTeamAnalytics();
+            } else {
+                title.textContent = currentUser + "'s Analytics";
+                content.innerHTML = generateUserAnalytics(currentUser);
+            }
             
             modal.classList.add('active');
         }
@@ -548,6 +706,24 @@
                     <div class="metric-value">${workingDays + offDays + leaveDays} days</div>
                 </div>
             `;
+        }
+
+        function generateTeamAnalytics() {
+            let html = '';
+            
+            users.forEach(user => {
+                const shifts = scheduleData[user];
+                const workingDays = shifts.filter(s => !['OFF', 'Leave'].includes(s)).length;
+                
+                html += `
+                    <div class="metric">
+                        <div class="metric-label">${user}</div>
+                        <div class="metric-value">${workingDays} working days</div>
+                    </div>
+                `;
+            });
+            
+            return html;
         }
 
         // Initialize
