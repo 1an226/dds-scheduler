@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DDS Ordering Desk Scheduler - Login</title>
+    <title>DDS Ordering Desk Scheduler</title>
     <style>
         :root {
             --primary: #2c3e50;
@@ -11,6 +11,13 @@
             --success: #2ecc71;
             --warning: #f39c12;
             --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #34495e;
+            --rift: #e74c3c;
+            --central: #3498db;
+            --d2: #2ecc71;
+            --d3: #f39c12;
+            --off: #95a5a6;
         }
         
         * {
@@ -24,16 +31,233 @@
             background-color: #f5f7fa;
             color: #333;
             line-height: 1.6;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 20px;
         }
         
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px 0;
+            border-radius: 10px 10px 0 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .user-info {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-align: right;
+        }
+        
+        .user-name {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .user-status {
+            font-size: 12px;
+            margin-top: 3px;
+        }
+        
+        .mode-badge {
+            display: inline-block;
+            background-color: var(--warning);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        
+        .admin-badge {
+            display: inline-block;
+            background-color: var(--success);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        
+        .nav-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+        
+        .week-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .analytics-btn {
+            background-color: var(--success);
+        }
+        
+        .logout-btn {
+            background-color: var(--danger);
+        }
+        
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+        
+        .week-display {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        /* Schedule Table with Box Design */
+        .schedule-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 8px;
+            margin-top: 20px;
+        }
+        
+        .schedule-table th {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        
+        .schedule-table td {
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+            min-width: 100px;
+        }
+        
+        .schedule-table td:hover {
+            transform: translateY(-2px);
+        }
+        
+        .user-cell {
+            font-weight: 600;
+            background-color: #f8f9fa !important;
+            text-align: left;
+            min-width: 150px;
+        }
+        
+        .highlight-user {
+            background-color: #e8f4fc !important;
+            font-weight: bold;
+        }
+        
+        /* Shift Type Box Styles */
+        .shift-rift {
+            background-color: var(--rift);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .shift-central {
+            background-color: var(--central);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .shift-d2 {
+            background-color: var(--d2);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .shift-d3 {
+            background-color: var(--d3);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .shift-off {
+            background-color: var(--off);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .shift-leave {
+            background-color: #fff9e6;
+            color: var(--warning);
+            border: 2px dashed var(--warning);
+            font-weight: bold;
+        }
+        
+        .shift-empty {
+            background-color: #f8f9fa;
+            color: #95a5a6;
+        }
+        
+        .on-leave {
+            color: #95a5a6;
+            font-style: italic;
+        }
+        
+        .team-updates {
+            background-color: #fff9e6;
+            border-left: 4px solid var(--warning);
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .team-updates h3 {
+            color: var(--warning);
+            margin-bottom: 5px;
+        }
+        
+        /* Login Styles */
         .login-container {
             max-width: 400px;
-            width: 100%;
+            margin: 100px auto;
             background: white;
             padding: 30px;
             border-radius: 10px;
@@ -41,20 +265,8 @@
             text-align: center;
         }
         
-        h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
-            color: var(--primary);
-        }
-        
-        .subtitle {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 30px;
-        }
-        
         .login-form {
-            margin-top: 20px;
+            margin-top: 30px;
         }
         
         .form-group {
@@ -96,7 +308,6 @@
             font-weight: 600;
             width: 100%;
             transition: transform 0.2s;
-            margin-top: 10px;
         }
         
         .login-btn:hover {
@@ -104,18 +315,94 @@
         }
         
         .demo-note {
-            margin-top: 25px;
+            margin-top: 20px;
             font-size: 14px;
             color: #7f8c8d;
-            line-height: 1.6;
-            text-align: center;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
+            line-height: 1.4;
         }
         
         .hidden {
             display: none;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        /* Admin Controls */
+        .admin-controls {
+            background-color: #e8f6f3;
+            border-left: 4px solid var(--success);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .admin-controls h3 {
+            color: var(--success);
+            margin-bottom: 10px;
+        }
+        
+        /* Analytics Modal */
+        .analytics-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .analytics-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .analytics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+        
+        .metric {
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .metric-label {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .metric-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--secondary);
         }
         
         .error-message {
@@ -127,17 +414,6 @@
             padding: 10px;
             border-radius: 5px;
             border: 1px solid #fbd5d5;
-        }
-        
-        .success-message {
-            color: var(--success);
-            font-size: 14px;
-            margin-top: 10px;
-            text-align: center;
-            background: #e8f6f3;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #d1f2eb;
         }
     </style>
 </head>
@@ -166,7 +442,6 @@
             </div>
             
             <div id="errorMessage" class="error-message hidden"></div>
-            <div id="successMessage" class="success-message hidden"></div>
             
             <button class="login-btn" onclick="login()">Login</button>
         </div>
@@ -178,8 +453,88 @@
         </div>
     </div>
 
+    <!-- Main Application -->
+    <div id="mainApp" class="container hidden">
+        <header>
+            <div class="header-content">
+                <div>
+                    <h1>DDS Ordering Desk Scheduler</h1>
+                    <div class="subtitle">Weekly Duty Roster Management</div>
+                </div>
+                <div class="user-info">
+                    <div class="user-name" id="loggedInUser">User</div>
+                    <div class="user-status" id="userStatus">Status</div>
+                    <div class="mode-badge" id="modeBadge">View Only Mode - Locked by admin</div>
+                    <div class="admin-badge hidden" id="adminBadge">Administrator</div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Admin Controls (only for Ian) -->
+        <div id="adminControls" class="admin-controls hidden">
+            <h3>Admin Controls</h3>
+            <p>You can edit schedules, manage users, and view analytics</p>
+            <button class="btn" style="margin-right: 10px;">Edit Schedule</button>
+            <button class="btn analytics-btn" onclick="showAnalytics()">View Analytics</button>
+        </div>
+        
+        <div class="nav-controls">
+            <div class="week-nav">
+                <button class="btn">&lt; Previous</button>
+                <div class="week-display">Week 1, 2023</div>
+                <button class="btn">Next &gt;</button>
+            </div>
+            <div>
+                <button class="btn analytics-btn" onclick="showAnalytics()" id="userAnalyticsBtn">My Analytics</button>
+                <button class="btn logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+        
+        <table class="schedule-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Monday</th>
+                    <th>Tuesday</th>
+                    <th>Wednesday</th>
+                    <th>Thursday</th>
+                    <th>Friday</th>
+                    <th>Saturday</th>
+                    <th>Sunday</th>
+                </tr>
+            </thead>
+            <tbody id="scheduleBody">
+                <!-- Schedule will be populated by JavaScript -->
+            </tbody>
+        </table>
+        
+        <div class="team-updates">
+            <h3>Team Updates</h3>
+            <p id="teamUpdatesText">Emma is on leave from Wednesday until February 2026 - Janet returns on Saturday</p>
+            <p><strong>TPC - Mostly sunny</strong></p>
+        </div>
+        
+        <footer>
+            <p>Monday, October 6, 2023 | Mon 5:53 AM (Local time) | 9:36 AM | 10/6/2023</p>
+            <p>Last saved: 2025-10-05T19:23:19.919Z | Updated by: Ian</p>
+        </footer>
+    </div>
+
+    <!-- Analytics Modal -->
+    <div id="analyticsModal" class="analytics-modal hidden">
+        <div class="analytics-content">
+            <div class="analytics-header">
+                <h2 id="analyticsTitle">User Analytics</h2>
+                <button class="close-btn" onclick="hideAnalytics()">&times;</button>
+            </div>
+            <div id="analyticsContent">
+                <!-- Analytics content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
     <script>
-        // User credentials - NOT displayed to users
+        // User credentials
         const userCredentials = {
             'Ian': 'OFtFusGT',      // Admin password
             'Kim': 'Monday',        // Kim's OFF day
@@ -189,27 +544,90 @@
             'Janet': 'Friday'       // Janet's OFF day
         };
 
-        // Password hints for demo purposes (not shown in production)
-        const passwordHints = {
-            'Ian': 'Admin special password',
-            'Kim': 'Your usual OFF day',
-            'Emma': 'Your usual OFF day',  
-            'Kevo': 'Your usual OFF day',
-            'Wendy': 'Your usual OFF day',
-            'Janet': 'Your usual OFF day'
+        // Schedule data with box styling
+        const scheduleData = {
+            'Ian': ['Rift', 'Central', 'D2', 'Rift', 'D3', 'Central', 'D3'],
+            'Kim': ['OFF', 'D3', 'Central', 'D2', 'Rift', 'D3', 'Central'],
+            'Emma': ['D3', 'OFF', '•', '•', '•', '•', '•'],
+            'Kevo': ['D2', 'Rift', 'D3', 'Central', 'D2', 'Rift', 'OFF'],
+            'Wendy': ['Central', 'D2', 'Rift', 'D3', 'Central', '•', 'D2'],
+            'Janet': ['•', '•', '•', '•', '•', 'D2', 'Rift']
         };
+
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        const users = ['Ian', 'Kim', 'Emma', 'Kevo', 'Wendy', 'Janet'];
+        let currentUser = '';
+
+        function initializePage() {
+            checkLogin();
+        }
+
+        function checkLogin() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = savedUser;
+                showMainApp();
+            } else {
+                showLoginPage();
+            }
+        }
+
+        function showLoginPage() {
+            document.getElementById('loginPage').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+        }
+
+        function showMainApp() {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            
+            // Custom experience based on user
+            setupUserExperience();
+            renderSchedule();
+        }
+
+        function setupUserExperience() {
+            const isAdmin = currentUser === 'Ian';
+            
+            // Update user display
+            document.getElementById('loggedInUser').textContent = 
+                currentUser + (currentUser === 'Emma' ? ' (You)' : (isAdmin ? ' (Admin)' : ''));
+            
+            // User-specific status
+            if (currentUser === 'Emma') {
+                document.getElementById('userStatus').textContent = 'on leave until February 2026';
+                document.getElementById('teamUpdatesText').innerHTML = 
+                    '<strong>You are on leave</strong> from Wednesday until February 2026<br>Janet returns on Saturday';
+            } else if (isAdmin) {
+                document.getElementById('userStatus').textContent = 'Administrator';
+                document.getElementById('teamUpdatesText').innerHTML = 
+                    '<strong>Admin View:</strong> Emma is on leave from Wednesday until February 2026 - Janet returns on Saturday';
+            } else {
+                document.getElementById('userStatus').textContent = 'viewing roster';
+            }
+            
+            // Admin controls
+            if (isAdmin) {
+                document.getElementById('adminBadge').classList.remove('hidden');
+                document.getElementById('adminControls').classList.remove('hidden');
+                document.getElementById('modeBadge').textContent = 'Admin Mode - Full Access';
+                document.getElementById('userAnalyticsBtn').textContent = 'Team Analytics';
+            } else {
+                document.getElementById('adminBadge').classList.add('hidden');
+                document.getElementById('adminControls').classList.add('hidden');
+                document.getElementById('modeBadge').textContent = 'View Only Mode - Locked by admin';
+                document.getElementById('userAnalyticsBtn').textContent = 'My Analytics';
+            }
+        }
 
         function login() {
             const userSelect = document.getElementById('userSelect');
-            const passwordInput = document.getElementById('password');
+            const password = document.getElementById('password').value;
             const errorMessage = document.getElementById('errorMessage');
-            const successMessage = document.getElementById('successMessage');
             const selectedUser = userSelect.value;
-            const password = passwordInput.value;
             
-            // Clear previous messages
+            // Clear previous errors
             errorMessage.classList.add('hidden');
-            successMessage.classList.add('hidden');
             
             if (!selectedUser) {
                 showError('Please select a user');
@@ -217,30 +635,18 @@
             }
             
             if (!password) {
-                showError('Please enter your password');
+                showError('Please enter password');
                 return;
             }
             
             // Check credentials
             const correctPassword = userCredentials[selectedUser];
             if (password === correctPassword) {
-                // Successful login
-                showSuccess('Login successful! Redirecting...');
-                
-                // Store login state
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('currentUser', selectedUser);
-                
-                // Redirect to main application after short delay
-                setTimeout(() => {
-                    // In a real app, this would redirect to your main application
-                    // For demo, we'll just show a success message
-                    alert('Welcome ' + selectedUser + '! Main application would load here.');
-                    // window.location.href = 'main-application.html';
-                }, 1000);
-                
+                currentUser = selectedUser;
+                localStorage.setItem('currentUser', currentUser);
+                showMainApp(); // INSTANT SWITCH - NO REDIRECT
             } else {
-                showError('Invalid password. Hint: ' + (passwordHints[selectedUser] || 'Check with admin'));
+                showError('Invalid password for ' + selectedUser + '. Hint: Use your default OFF day as password.');
             }
         }
 
@@ -250,41 +656,172 @@
             errorMessage.classList.remove('hidden');
         }
 
-        function showSuccess(message) {
-            const successMessage = document.getElementById('successMessage');
-            successMessage.textContent = message;
-            successMessage.classList.remove('hidden');
+        function logout() {
+            localStorage.removeItem('currentUser');
+            currentUser = '';
+            document.getElementById('userSelect').value = '';
+            document.getElementById('password').value = '';
+            showLoginPage();
         }
+
+        function renderSchedule() {
+            const scheduleBody = document.getElementById('scheduleBody');
+            scheduleBody.innerHTML = '';
+            
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                if (user === currentUser) {
+                    row.classList.add('highlight-user');
+                }
+                
+                // Name cell
+                const nameCell = document.createElement('td');
+                nameCell.className = 'user-cell';
+                if (user === 'Emma') {
+                    nameCell.innerHTML = `${user} ${currentUser === 'Emma' ? '(You)' : ''} <span class="on-leave">(on leave)</span>`;
+                } else if (user === 'Janet') {
+                    nameCell.innerHTML = `${user} <span class="on-leave">(returns Saturday)</span>`;
+                } else if (user === 'Ian') {
+                    nameCell.innerHTML = `${user} ${currentUser === 'Ian' ? '(Admin)' : ''}`;
+                } else {
+                    nameCell.textContent = user;
+                }
+                row.appendChild(nameCell);
+                
+                // Day cells with box styling
+                scheduleData[user].forEach((shift, index) => {
+                    const dayCell = document.createElement('td');
+                    
+                    // Apply box styling based on shift type
+                    if (shift === 'Rift') dayCell.className = 'shift-rift';
+                    else if (shift === 'Central') dayCell.className = 'shift-central';
+                    else if (shift === 'D2') dayCell.className = 'shift-d2';
+                    else if (shift === 'D3') dayCell.className = 'shift-d3';
+                    else if (shift === 'OFF') dayCell.className = 'shift-off';
+                    else if (shift === '•') {
+                        dayCell.className = 'shift-leave';
+                        dayCell.textContent = 'Leave';
+                    } else {
+                        dayCell.className = 'shift-empty';
+                        dayCell.textContent = shift;
+                    }
+                    
+                    if (shift !== '•') {
+                        dayCell.textContent = shift;
+                    }
+                    
+                    row.appendChild(dayCell);
+                });
+                
+                scheduleBody.appendChild(row);
+            });
+        }
+
+        function showAnalytics() {
+            const modal = document.getElementById('analyticsModal');
+            const title = document.getElementById('analyticsTitle');
+            const content = document.getElementById('analyticsContent');
+            
+            // Set title based on user
+            if (currentUser === 'Ian') {
+                title.textContent = 'Team Analytics - Admin View';
+                content.innerHTML = generateAdminAnalytics();
+            } else {
+                title.textContent = 'My Analytics - ' + currentUser;
+                content.innerHTML = generateUserAnalytics(currentUser);
+            }
+            
+            modal.classList.remove('hidden');
+        }
+
+        function hideAnalytics() {
+            document.getElementById('analyticsModal').classList.add('hidden');
+        }
+
+        function generateUserAnalytics(user) {
+            const shifts = scheduleData[user];
+            let totalShifts = 0;
+            let offDays = 0;
+            let leaveDays = 0;
+            const shiftCount = { Rift: 0, Central: 0, D2: 0, D3: 0, OFF: 0 };
+            
+            shifts.forEach(shift => {
+                if (shift === '•') {
+                    leaveDays++;
+                } else if (shift === 'OFF') {
+                    offDays++;
+                    shiftCount.OFF++;
+                } else {
+                    totalShifts++;
+                    if (shiftCount.hasOwnProperty(shift)) {
+                        shiftCount[shift]++;
+                    }
+                }
+            });
+            
+            const workingDays = totalShifts;
+            const mostCommonShift = Object.keys(shiftCount).reduce((a, b) => shiftCount[a] > shiftCount[b] ? a : b);
+            
+            return `
+                <div class="metric">
+                    <div class="metric-label">Total Working Days</div>
+                    <div class="metric-value">${workingDays} days</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">OFF Days</div>
+                    <div class="metric-value">${offDays} days</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Leave Days</div>
+                    <div class="metric-value">${leaveDays} days</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Most Common Role</div>
+                    <div class="metric-value">${mostCommonShift}</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Shift Distribution</div>
+                    <div class="metric-value">
+                        Rift: ${shiftCount.Rift} | Central: ${shiftCount.Central}<br>
+                        D2: ${shiftCount.D2} | D3: ${shiftCount.D3}
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateAdminAnalytics() {
+            let html = '';
+            
+            users.forEach(user => {
+                const shifts = scheduleData[user];
+                const workingDays = shifts.filter(shift => shift !== 'OFF' && shift !== '•').length;
+                
+                html += `
+                    <div class="metric">
+                        <div class="metric-label">${user} ${user === 'Ian' ? '(Admin)' : ''}</div>
+                        <div class="metric-value">${workingDays} working days</div>
+                    </div>
+                `;
+            });
+            
+            return html;
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', initializePage);
+
+        // Close modal when clicking outside
+        document.getElementById('analyticsModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideAnalytics();
+            }
+        });
 
         // Allow pressing Enter to login
         document.getElementById('password').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 login();
             }
-        });
-
-        // Check if already logged in
-        function checkExistingLogin() {
-            const isLoggedIn = localStorage.getItem('isLoggedIn');
-            const currentUser = localStorage.getItem('currentUser');
-            
-            if (isLoggedIn === 'true' && currentUser) {
-                // User is already logged in, redirect to main app
-                alert('Welcome back ' + currentUser + '!');
-                // window.location.href = 'main-application.html';
-            }
-        }
-
-        // Clear any existing login when page loads (for demo purposes)
-        function clearExistingLogin() {
-            localStorage.removeItem('isLoggedIn');
-            localStorage.removeItem('currentUser');
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            clearExistingLogin(); // Remove this line in production
-            checkExistingLogin();
         });
     </script>
 </body>
