@@ -115,6 +115,18 @@
         .standing-orders-btn {
             background-color: #9b59b6;
         }
+
+        .summary-btn {
+            background-color: #e67e22;
+        }
+
+        .patterns-btn {
+            background-color: #16a085;
+        }
+
+        .leave-tracker-btn {
+            background-color: #8e44ad;
+        }
         
         .week-display {
             font-weight: bold;
@@ -271,7 +283,7 @@
             background: white;
             padding: 30px;
             border-radius: 10px;
-            max-width: 500px;
+            max-width: 600px;
             width: 90%;
             max-height: 80vh;
             overflow-y: auto;
@@ -377,6 +389,75 @@
             color: #555;
             line-height: 1.5;
         }
+
+        /* New Analytics Styles */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+            border-top: 4px solid var(--secondary);
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .coverage-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .coverage-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            border-left: 4px solid var(--success);
+        }
+        
+        .pattern-item {
+            background: #f8f9fa;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 4px solid #16a085;
+        }
+        
+        .leave-item {
+            background: #fff9e6;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 4px solid #f39c12;
+        }
+        
+        .region-stats {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
     </style>
 </head>
 <body>
@@ -449,6 +530,9 @@
                 <button class="btn">Next &gt;</button>
             </div>
             <div>
+                <button class="btn summary-btn" onclick="showWeeklySummary()">Weekly Summary</button>
+                <button class="btn patterns-btn" onclick="showShiftPatterns()">Shift Patterns</button>
+                <button class="btn leave-tracker-btn" onclick="showLeaveTracker()">Leave Tracker</button>
                 <button class="btn standing-orders-btn" onclick="showStandingOrders()">Standing Orders</button>
                 <button class="btn analytics-btn" onclick="showAnalytics()" id="userAnalyticsBtn">My Analytics</button>
                 <button class="btn logout-btn" onclick="logout()">Logout</button>
@@ -513,6 +597,39 @@
         </div>
     </div>
 
+    <!-- Weekly Summary Modal -->
+    <div id="weeklySummaryModal" class="analytics-modal">
+        <div class="analytics-content">
+            <button class="close-btn" onclick="hideWeeklySummary()">&times;</button>
+            <h2>Weekly Summary Dashboard</h2>
+            <div id="weeklySummaryContent">
+                <!-- Weekly summary content -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Shift Patterns Modal -->
+    <div id="shiftPatternsModal" class="analytics-modal">
+        <div class="analytics-content">
+            <button class="close-btn" onclick="hideShiftPatterns()">&times;</button>
+            <h2>Shift Pattern Analytics</h2>
+            <div id="shiftPatternsContent">
+                <!-- Shift patterns content -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Leave Tracker Modal -->
+    <div id="leaveTrackerModal" class="analytics-modal">
+        <div class="analytics-content">
+            <button class="close-btn" onclick="hideLeaveTracker()">&times;</button>
+            <h2>Leave & Absence Tracker</h2>
+            <div id="leaveTrackerContent">
+                <!-- Leave tracker content -->
+            </div>
+        </div>
+    </div>
+
     <script>
         // User credentials
         const userCredentials = {
@@ -535,6 +652,8 @@
         };
 
         const users = ['Ian', 'Kim', 'Emma', 'Kevo', 'Wendy', 'Janet'];
+        const regions = ['Rift', 'Central', 'D2', 'D3'];
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         let currentUser = '';
         let isRosterLocked = true; // Default to locked
 
@@ -748,6 +867,7 @@
             });
         }
 
+        // Analytics Functions
         function showAnalytics() {
             const modal = document.getElementById('analyticsModal');
             const title = document.getElementById('analyticsTitle');
@@ -768,13 +888,209 @@
             document.getElementById('analyticsModal').classList.remove('active');
         }
 
-        // New Standing Orders Functions
+        // New Analytics Functions
+        function showWeeklySummary() {
+            const modal = document.getElementById('weeklySummaryModal');
+            const content = document.getElementById('weeklySummaryContent');
+            content.innerHTML = generateWeeklySummary();
+            modal.classList.add('active');
+        }
+
+        function hideWeeklySummary() {
+            document.getElementById('weeklySummaryModal').classList.remove('active');
+        }
+
+        function showShiftPatterns() {
+            const modal = document.getElementById('shiftPatternsModal');
+            const content = document.getElementById('shiftPatternsContent');
+            content.innerHTML = generateShiftPatterns();
+            modal.classList.add('active');
+        }
+
+        function hideShiftPatterns() {
+            document.getElementById('shiftPatternsModal').classList.remove('active');
+        }
+
+        function showLeaveTracker() {
+            const modal = document.getElementById('leaveTrackerModal');
+            const content = document.getElementById('leaveTrackerContent');
+            content.innerHTML = generateLeaveTracker();
+            modal.classList.add('active');
+        }
+
+        function hideLeaveTracker() {
+            document.getElementById('leaveTrackerModal').classList.remove('active');
+        }
+
+        // Standing Orders Functions
         function showStandingOrders() {
             document.getElementById('standingOrdersModal').classList.add('active');
         }
 
         function hideStandingOrders() {
             document.getElementById('standingOrdersModal').classList.remove('active');
+        }
+
+        // Data Analysis Functions
+        function generateWeeklySummary() {
+            // Calculate statistics
+            let totalShifts = 0;
+            let regionCounts = { Rift: 0, Central: 0, D2: 0, D3: 0 };
+            let dayCoverage = {};
+            
+            days.forEach(day => dayCoverage[day] = { Rift: 0, Central: 0, D2: 0, D3: 0 });
+            
+            users.forEach(user => {
+                scheduleData[user].forEach((shift, dayIndex) => {
+                    if (regions.includes(shift)) {
+                        totalShifts++;
+                        regionCounts[shift]++;
+                        dayCoverage[days[dayIndex]][shift]++;
+                    }
+                });
+            });
+
+            const workingStaff = users.filter(user => 
+                scheduleData[user].some(shift => regions.includes(shift))
+            ).length;
+
+            return `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">${totalShifts}</div>
+                        <div class="stat-label">Total Shifts</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${workingStaff}/6</div>
+                        <div class="stat-label">Active Staff</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${Object.values(regionCounts).reduce((a, b) => a + b, 0)}</div>
+                        <div class="stat-label">Region Coverage</div>
+                    </div>
+                </div>
+
+                <h3>Region Distribution</h3>
+                ${Object.entries(regionCounts).map(([region, count]) => `
+                    <div class="region-stats">
+                        <span>${region}:</span>
+                        <span><strong>${count}</strong> shifts</span>
+                    </div>
+                `).join('')}
+
+                <h3>Daily Coverage</h3>
+                ${Object.entries(dayCoverage).map(([day, coverage]) => `
+                    <div class="coverage-item">
+                        <strong>${day}</strong><br>
+                        ${Object.entries(coverage).map(([region, count]) => 
+                            `${region}: ${count}`).join(' • ')}
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        function generateShiftPatterns() {
+            let userPatterns = {};
+            
+            users.forEach(user => {
+                const shifts = scheduleData[user];
+                const pattern = shifts.join(' → ');
+                const regionFrequency = {};
+                
+                shifts.forEach(shift => {
+                    if (regions.includes(shift)) {
+                        regionFrequency[shift] = (regionFrequency[shift] || 0) + 1;
+                    }
+                });
+                
+                userPatterns[user] = {
+                    pattern: pattern,
+                    frequency: regionFrequency,
+                    totalShifts: Object.values(regionFrequency).reduce((a, b) => a + b, 0)
+                };
+            });
+
+            return `
+                <h3>Individual Shift Patterns</h3>
+                ${Object.entries(userPatterns).map(([user, data]) => `
+                    <div class="pattern-item">
+                        <strong>${user}</strong><br>
+                        <small>Pattern: ${data.pattern}</small><br>
+                        <small>Total shifts: ${data.totalShifts}</small><br>
+                        ${Object.entries(data.frequency).map(([region, count]) => 
+                            `<span style="color: #666">${region}: ${count} </span>`).join('')}
+                    </div>
+                `).join('')}
+
+                <h3>Most Common Regions</h3>
+                ${Object.entries(calculateRegionPreferences()).map(([user, preferences]) => `
+                    <div class="metric">
+                        <div class="metric-label">${user}</div>
+                        <div class="metric-value">${preferences.join(', ')}</div>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        function generateLeaveTracker() {
+            const leaveData = [];
+            
+            users.forEach(user => {
+                const shifts = scheduleData[user];
+                const leaveDays = shifts.filter(shift => shift === 'Leave').length;
+                const offDays = shifts.filter(shift => shift === 'OFF').length;
+                
+                if (leaveDays > 0 || user === 'Emma') {
+                    leaveData.push({
+                        user: user,
+                        leaveDays: leaveDays,
+                        offDays: offDays,
+                        status: user === 'Emma' ? 'On long-term leave until Feb 2026' : 
+                               leaveDays > 0 ? `On leave (${leaveDays} days)` : 'Available'
+                    });
+                }
+            });
+
+            return `
+                <h3>Current Leave Status</h3>
+                ${leaveData.map(data => `
+                    <div class="leave-item">
+                        <strong>${data.user}</strong><br>
+                        <span>${data.status}</span><br>
+                        <small>Leave days: ${data.leaveDays} • OFF days: ${data.offDays}</small>
+                    </div>
+                `).join('')}
+
+                <h3>Team Availability</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">${leaveData.filter(d => d.leaveDays > 0).length}</div>
+                        <div class="stat-label">On Leave</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${users.length - leaveData.filter(d => d.leaveDays > 0).length}</div>
+                        <div class="stat-label">Available</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function calculateRegionPreferences() {
+            let preferences = {};
+            users.forEach(user => {
+                const regionCount = {};
+                scheduleData[user].forEach(shift => {
+                    if (regions.includes(shift)) {
+                        regionCount[shift] = (regionCount[shift] || 0) + 1;
+                    }
+                });
+                // Get top 2 most frequent regions
+                preferences[user] = Object.entries(regionCount)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 2)
+                    .map(([region]) => region);
+            });
+            return preferences;
         }
 
         function generateUserAnalytics(user) {
@@ -829,16 +1145,20 @@
             if (e.key === 'Escape') {
                 hideAnalytics();
                 hideStandingOrders();
+                hideWeeklySummary();
+                hideShiftPatterns();
+                hideLeaveTracker();
             }
         });
 
         // Close modals when clicking outside
-        document.getElementById('analyticsModal').addEventListener('click', function(e) {
-            if (e.target === this) hideAnalytics();
-        });
-
-        document.getElementById('standingOrdersModal').addEventListener('click', function(e) {
-            if (e.target === this) hideStandingOrders();
+        const modals = ['analyticsModal', 'standingOrdersModal', 'weeklySummaryModal', 'shiftPatternsModal', 'leaveTrackerModal'];
+        modals.forEach(modalId => {
+            document.getElementById(modalId).addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
         });
 
         // Enter key to login
