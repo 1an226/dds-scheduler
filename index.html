@@ -111,6 +111,10 @@
         .logout-btn {
             background-color: var(--danger);
         }
+
+        .standing-orders-btn {
+            background-color: #9b59b6;
+        }
         
         .week-display {
             font-weight: bold;
@@ -324,6 +328,55 @@
             color: #666;
             margin-top: 5px;
         }
+
+        /* Standing Orders Modal */
+        .standing-orders-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .standing-orders-modal.active {
+            display: flex;
+        }
+        
+        .standing-orders-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .order-item {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #9b59b6;
+        }
+        
+        .order-title {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .order-details {
+            color: #555;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body>
@@ -396,6 +449,7 @@
                 <button class="btn">Next &gt;</button>
             </div>
             <div>
+                <button class="btn standing-orders-btn" onclick="showStandingOrders()">Standing Orders</button>
                 <button class="btn analytics-btn" onclick="showAnalytics()" id="userAnalyticsBtn">My Analytics</button>
                 <button class="btn logout-btn" onclick="logout()">Logout</button>
             </div>
@@ -433,6 +487,28 @@
             <h2 id="analyticsTitle">User Analytics</h2>
             <div id="analyticsContent">
                 <!-- Analytics content -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Standing Orders Modal -->
+    <div id="standingOrdersModal" class="standing-orders-modal">
+        <div class="standing-orders-content">
+            <button class="close-btn" onclick="hideStandingOrders()">&times;</button>
+            <h2>Daily Standing Orders</h2>
+            <div id="standingOrdersContent">
+                <div class="order-item">
+                    <div class="order-title">Kamcan</div>
+                    <div class="order-details">8CT 8 pieces, 1.5CT 1 piece</div>
+                </div>
+                <div class="order-item">
+                    <div class="order-title">Coast Paradise</div>
+                    <div class="order-details">8CT 10 pieces, 8Nutri 2 pieces and 1.5CT 3 pieces</div>
+                </div>
+                <div class="order-item">
+                    <div class="order-title">Kilimall</div>
+                    <div class="order-details">4CT 65 pieces, 4Nutri 13 pieces</div>
+                </div>
             </div>
         </div>
     </div>
@@ -692,6 +768,15 @@
             document.getElementById('analyticsModal').classList.remove('active');
         }
 
+        // New Standing Orders Functions
+        function showStandingOrders() {
+            document.getElementById('standingOrdersModal').classList.add('active');
+        }
+
+        function hideStandingOrders() {
+            document.getElementById('standingOrdersModal').classList.remove('active');
+        }
+
         function generateUserAnalytics(user) {
             const shifts = scheduleData[user];
             const workingDays = shifts.filter(s => !['OFF', 'Leave'].includes(s)).length;
@@ -739,14 +824,21 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', initializePage);
 
-        // Close modal with Escape key
+        // Close modals with Escape key
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') hideAnalytics();
+            if (e.key === 'Escape') {
+                hideAnalytics();
+                hideStandingOrders();
+            }
         });
 
-        // Close modal when clicking outside
+        // Close modals when clicking outside
         document.getElementById('analyticsModal').addEventListener('click', function(e) {
             if (e.target === this) hideAnalytics();
+        });
+
+        document.getElementById('standingOrdersModal').addEventListener('click', function(e) {
+            if (e.target === this) hideStandingOrders();
         });
 
         // Enter key to login
