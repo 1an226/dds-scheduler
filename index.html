@@ -522,12 +522,12 @@
         
         <div class="nav-controls">
             <div class="week-nav">
-                <button class="btn">&lt; Previous</button>
+                <button class="btn" onclick="changeWeek(-1)">&lt; Previous</button>
                 <div>
-                    <div class="week-display">Week 41, 2025</div>
-                    <div class="date-range">6th Oct - 12th Oct 2025</div>
+                    <div class="week-display" id="weekDisplay">Week 41, 2025</div>
+                    <div class="date-range" id="dateRange">6th Oct - 12th Oct 2025</div>
                 </div>
-                <button class="btn">Next &gt;</button>
+                <button class="btn" onclick="changeWeek(1)">Next &gt;</button>
             </div>
             <div>
                 <button class="btn summary-btn" onclick="showWeeklySummary()">Weekly Summary</button>
@@ -543,13 +543,13 @@
             <thead>
                 <tr>
                     <th>Name</th>
-                    <th>Monday<br>6th Oct</th>
-                    <th>Tuesday<br>7th Oct</th>
-                    <th>Wednesday<br>8th Oct</th>
-                    <th>Thursday<br>9th Oct</th>
-                    <th>Friday<br>10th Oct</th>
-                    <th>Saturday<br>11th Oct</th>
-                    <th>Sunday<br>12th Oct</th>
+                    <th>Monday<br><span id="mondayDate">6th Oct</span></th>
+                    <th>Tuesday<br><span id="tuesdayDate">7th Oct</span></th>
+                    <th>Wednesday<br><span id="wednesdayDate">8th Oct</span></th>
+                    <th>Thursday<br><span id="thursdayDate">9th Oct</span></th>
+                    <th>Friday<br><span id="fridayDate">10th Oct</span></th>
+                    <th>Saturday<br><span id="saturdayDate">11th Oct</span></th>
+                    <th>Sunday<br><span id="sundayDate">12th Oct</span></th>
                 </tr>
             </thead>
             <tbody id="scheduleBody">
@@ -559,7 +559,7 @@
         
         <div class="team-updates">
             <h3>Team Updates</h3>
-            <p>Emma is on leave from Wednesday until February 2026 - Janet returns on Saturday</p>
+            <p id="teamUpdatesText">Emma is on leave from Wednesday until February 2026 - Janet returns on Saturday</p>
             <p><strong>TPC - Mostly sunny</strong></p>
         </div>
     </div>
@@ -641,20 +641,43 @@
             'Janet': 'Friday'
         };
 
-        // Schedule data with PROPER COLORS
-        const scheduleData = {
-            'Ian': ['Rift', 'Central', 'D2', 'Rift', 'D3', 'Central', 'D3'],
-            'Kim': ['OFF', 'D3', 'Central', 'D2', 'Rift', 'D3', 'Central'],
-            'Emma': ['D3', 'OFF', 'Leave', 'Leave', 'Leave', 'Leave', 'Leave'],
-            'Kevo': ['D2', 'Rift', 'D3', 'Central', 'D2', 'Rift', 'OFF'],
-            'Wendy': ['Central', 'D2', 'Rift', 'D3', 'Central', 'OFF', 'D2'],
-            'Janet': ['OFF', 'OFF', 'OFF', 'OFF', 'OFF', 'D2', 'Rift']
+        // Week configurations
+        const weekConfigs = {
+            41: {
+                startDate: '2025-10-06',
+                endDate: '2025-10-12',
+                displayDate: '6th Oct - 12th Oct 2025',
+                teamUpdates: 'Emma is on leave from Wednesday until February 2026 - Janet returns on Saturday',
+                activeUsers: ['Ian', 'Kim', 'Emma', 'Kevo', 'Wendy', 'Janet'],
+                scheduleData: {
+                    'Ian': ['Rift', 'Central', 'D2', 'Rift', 'D3', 'Central', 'D3'],
+                    'Kim': ['OFF', 'D3', 'Central', 'D2', 'Rift', 'D3', 'Central'],
+                    'Emma': ['D3', 'OFF', 'Leave', 'Leave', 'Leave', 'Leave', 'Leave'],
+                    'Kevo': ['D2', 'Rift', 'D3', 'Central', 'D2', 'Rift', 'OFF'],
+                    'Wendy': ['Central', 'D2', 'Rift', 'D3', 'Central', 'OFF', 'D2'],
+                    'Janet': ['OFF', 'OFF', 'OFF', 'OFF', 'OFF', 'D2', 'Rift']
+                }
+            },
+            42: {
+                startDate: '2025-10-13',
+                endDate: '2025-10-19',
+                displayDate: '13th Oct - 19th Oct 2025',
+                teamUpdates: 'Emma is on long-term leave until February 2026',
+                activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'], // Emma removed
+                scheduleData: {
+                    'Ian': ['D2', 'Rift', 'Central', 'D3', 'Rift', 'D2', 'Central'],
+                    'Kim': ['Central', 'D2', 'Rift', 'D2', 'D3', 'Central', 'Rift'],
+                    'Kevo': ['Rift', 'D3', 'D2', 'Rift', 'Central', 'D3', 'OFF'],
+                    'Wendy': ['D3', 'Central', 'D3', 'Central', 'D2', 'OFF', 'D2'],
+                    'Janet': ['OFF', 'OFF', 'OFF', 'OFF', 'Rift', 'D3', 'Central']
+                }
+            }
         };
 
-        const users = ['Ian', 'Kim', 'Emma', 'Kevo', 'Wendy', 'Janet'];
         const regions = ['Rift', 'Central', 'D2', 'D3'];
         const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         let currentUser = '';
+        let currentWeek = 41;
         let isRosterLocked = true; // Default to locked
 
         function initializePage() {
@@ -687,7 +710,7 @@
             const isAdmin = currentUser === 'Ian';
             
             document.getElementById('loggedInUser').textContent = 
-                currentUser + (currentUser === 'Emma' ? ' (You)' : (isAdmin ? ' (Admin)' : ''));
+                currentUser + (isAdmin ? ' (Admin)' : '');
             document.getElementById('userStatus').textContent = 
                 currentUser === 'Emma' ? 'on leave until February 2026' : 'viewing roster';
             
@@ -710,6 +733,60 @@
             }
         }
 
+        // Week Navigation
+        function changeWeek(weekDelta) {
+            const newWeek = currentWeek + weekDelta;
+            
+            // Only allow navigation to weeks that exist in our config
+            if (weekConfigs[newWeek]) {
+                currentWeek = newWeek;
+                renderSchedule();
+                updateWeekDisplay();
+            } else {
+                alert(`Week ${newWeek} data not available`);
+            }
+        }
+
+        function updateWeekDisplay() {
+            const config = weekConfigs[currentWeek];
+            document.getElementById('weekDisplay').textContent = `Week ${currentWeek}, 2025`;
+            document.getElementById('dateRange').textContent = config.displayDate;
+            document.getElementById('teamUpdatesText').textContent = config.teamUpdates;
+            
+            // Update date headers
+            const startDate = new Date(config.startDate);
+            document.getElementById('mondayDate').textContent = formatDate(startDate);
+            document.getElementById('tuesdayDate').textContent = formatDate(addDays(startDate, 1));
+            document.getElementById('wednesdayDate').textContent = formatDate(addDays(startDate, 2));
+            document.getElementById('thursdayDate').textContent = formatDate(addDays(startDate, 3));
+            document.getElementById('fridayDate').textContent = formatDate(addDays(startDate, 4));
+            document.getElementById('saturdayDate').textContent = formatDate(addDays(startDate, 5));
+            document.getElementById('sundayDate').textContent = formatDate(addDays(startDate, 6));
+        }
+
+        function formatDate(date) {
+            const day = date.getDate();
+            const suffix = getDaySuffix(day);
+            const month = date.toLocaleDateString('en-US', { month: 'short' });
+            return `${day}${suffix} ${month}`;
+        }
+
+        function getDaySuffix(day) {
+            if (day > 3 && day < 21) return 'th';
+            switch (day % 10) {
+                case 1: return "st";
+                case 2: return "nd";
+                case 3: return "rd";
+                default: return "th";
+            }
+        }
+
+        function addDays(date, days) {
+            const result = new Date(date);
+            result.setDate(result.getDate() + days);
+            return result;
+        }
+
         // Admin Functions
         function lockRoster() {
             isRosterLocked = true;
@@ -725,53 +802,25 @@
         }
 
         function downloadJSON() {
+            const config = weekConfigs[currentWeek];
             // Create the JSON data structure
             const jsonData = {
-                scheduleData: {
-                    "Ian-Monday": "Rift",
-                    "Kim-Monday": "OFF",
-                    "Kevo-Monday": "D2",
-                    "Emma-Monday": "D3",
-                    "Wendy-Monday": "Central",
-                    "Ian-Tuesday": "Central",
-                    "Emma-Tuesday": "OFF",
-                    "Kevo-Tuesday": "Rift",
-                    "Wendy-Tuesday": "D2",
-                    "Kevo-Wednesday": "D3",
-                    "Wendy-Wednesday": "Rift",
-                    "Kim-Wednesday": "Central",
-                    "Emma-Wednesday": "Rift",
-                    "Emma-Thursday": "D2",
-                    "Ian-Thursday": "Rift",
-                    "Kim-Thursday": "D2",
-                    "Wendy-Thursday": "D3",
-                    "Kevo-Thursday": "Central",
-                    "Wendy-Friday": "Central",
-                    "Emma-Friday": "OFF",
-                    "Kevo-Friday": "D2",
-                    "Kim-Friday": "Rift",
-                    "Ian-Friday": "D3",
-                    "Ian-Saturday": "Central",
-                    "Kim-Sunday": "Central",
-                    "Kevo-Sunday": "OFF",
-                    "Ian-Sunday": "D3",
-                    "Wendy-Sunday": "D2",
-                    "Emma-Saturday": "D3",
-                    "Emma-Sunday": "Central",
-                    "Kim-Saturday": "D3",
-                    "Kevo-Saturday": "Rift",
-                    "Kim-Tuesday": "D3",
-                    "Ian-Wednesday": "D2",
-                    "Janet-Saturday": "D2",
-                    "Janet-Sunday": "Rift"
-                },
+                scheduleData: {},
                 isRosterLocked: isRosterLocked,
-                currentWeek: 41,
+                currentWeek: currentWeek,
                 currentYear: 2025,
-                dateRange: "6th Oct - 12th Oct 2025",
+                dateRange: config.displayDate,
                 lastSavedTime: new Date().toISOString(),
                 updatedBy: currentUser
             };
+
+            // Convert schedule data to the key-value format
+            config.activeUsers.forEach(user => {
+                config.scheduleData[user].forEach((shift, dayIndex) => {
+                    const dayName = days[dayIndex];
+                    jsonData.scheduleData[`${user}-${dayName}`] = shift;
+                });
+            });
 
             // Convert to JSON string
             const jsonString = JSON.stringify(jsonData, null, 2);
@@ -781,7 +830,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `roster_week41_2025_${new Date().getTime()}.json`;
+            a.download = `roster_week${currentWeek}_2025_${new Date().getTime()}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -832,7 +881,10 @@
             const scheduleBody = document.getElementById('scheduleBody');
             scheduleBody.innerHTML = '';
             
-            users.forEach(user => {
+            const config = weekConfigs[currentWeek];
+            const activeUsers = config.activeUsers;
+            
+            activeUsers.forEach(user => {
                 const row = document.createElement('tr');
                 if (user === currentUser) row.classList.add('current-user');
                 
@@ -841,7 +893,7 @@
                 nameCell.className = 'user-cell';
                 if (user === 'Emma') {
                     nameCell.innerHTML = user + ' <span class="on-leave">(on leave)</span>';
-                } else if (user === 'Janet') {
+                } else if (user === 'Janet' && currentWeek === 41) {
                     nameCell.innerHTML = user + ' <span class="on-leave">(returns Saturday)</span>';
                 } else {
                     nameCell.textContent = user;
@@ -849,7 +901,7 @@
                 row.appendChild(nameCell);
                 
                 // Shift cells with PROPER COLORS
-                scheduleData[user].forEach(shift => {
+                config.scheduleData[user].forEach(shift => {
                     const cell = document.createElement('td');
                     
                     if (shift === 'Rift') cell.className = 'shift-rift';
@@ -865,6 +917,8 @@
                 
                 scheduleBody.appendChild(row);
             });
+
+            updateWeekDisplay();
         }
 
         // Analytics Functions
@@ -933,6 +987,7 @@
 
         // Data Analysis Functions
         function generateWeeklySummary() {
+            const config = weekConfigs[currentWeek];
             // Calculate statistics
             let totalShifts = 0;
             let regionCounts = { Rift: 0, Central: 0, D2: 0, D3: 0 };
@@ -940,8 +995,8 @@
             
             days.forEach(day => dayCoverage[day] = { Rift: 0, Central: 0, D2: 0, D3: 0 });
             
-            users.forEach(user => {
-                scheduleData[user].forEach((shift, dayIndex) => {
+            config.activeUsers.forEach(user => {
+                config.scheduleData[user].forEach((shift, dayIndex) => {
                     if (regions.includes(shift)) {
                         totalShifts++;
                         regionCounts[shift]++;
@@ -950,8 +1005,8 @@
                 });
             });
 
-            const workingStaff = users.filter(user => 
-                scheduleData[user].some(shift => regions.includes(shift))
+            const workingStaff = config.activeUsers.filter(user => 
+                config.scheduleData[user].some(shift => regions.includes(shift))
             ).length;
 
             return `
@@ -961,7 +1016,7 @@
                         <div class="stat-label">Total Shifts</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number">${workingStaff}/6</div>
+                        <div class="stat-number">${workingStaff}/${config.activeUsers.length}</div>
                         <div class="stat-label">Active Staff</div>
                     </div>
                     <div class="stat-card">
@@ -990,10 +1045,11 @@
         }
 
         function generateShiftPatterns() {
+            const config = weekConfigs[currentWeek];
             let userPatterns = {};
             
-            users.forEach(user => {
-                const shifts = scheduleData[user];
+            config.activeUsers.forEach(user => {
+                const shifts = config.scheduleData[user];
                 const pattern = shifts.join(' → ');
                 const regionFrequency = {};
                 
@@ -1033,21 +1089,39 @@
         }
 
         function generateLeaveTracker() {
+            const config = weekConfigs[currentWeek];
             const leaveData = [];
             
-            users.forEach(user => {
-                const shifts = scheduleData[user];
-                const leaveDays = shifts.filter(shift => shift === 'Leave').length;
-                const offDays = shifts.filter(shift => shift === 'OFF').length;
+            // Include Emma in leave tracker even if she's not in active users
+            const allUsersToCheck = currentWeek >= 42 ? 
+                [...config.activeUsers, 'Emma'] : config.activeUsers;
+            
+            allUsersToCheck.forEach(user => {
+                let leaveDays = 0;
+                let offDays = 0;
                 
-                if (leaveDays > 0 || user === 'Emma') {
+                if (user === 'Emma' && currentWeek >= 42) {
+                    // Emma is on long-term leave
                     leaveData.push({
                         user: user,
-                        leaveDays: leaveDays,
-                        offDays: offDays,
-                        status: user === 'Emma' ? 'On long-term leave until Feb 2026' : 
-                               leaveDays > 0 ? `On leave (${leaveDays} days)` : 'Available'
+                        leaveDays: 7, // Full week on leave
+                        offDays: 0,
+                        status: 'On long-term leave until Feb 2026'
                     });
+                } else {
+                    const shifts = config.scheduleData[user] || [];
+                    leaveDays = shifts.filter(shift => shift === 'Leave').length;
+                    offDays = shifts.filter(shift => shift === 'OFF').length;
+                    
+                    if (leaveDays > 0 || user === 'Emma') {
+                        leaveData.push({
+                            user: user,
+                            leaveDays: leaveDays,
+                            offDays: offDays,
+                            status: user === 'Emma' ? 'On long-term leave until Feb 2026' : 
+                                   leaveDays > 0 ? `On leave (${leaveDays} days)` : 'Available'
+                        });
+                    }
                 }
             });
 
@@ -1068,18 +1142,19 @@
                         <div class="stat-label">On Leave</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number">${users.length - leaveData.filter(d => d.leaveDays > 0).length}</div>
-                        <div class="stat-label">Available</div>
+                        <div class="stat-number">${config.activeUsers.length}</div>
+                        <div class="stat-label">Available Staff</div>
                     </div>
                 </div>
             `;
         }
 
         function calculateRegionPreferences() {
+            const config = weekConfigs[currentWeek];
             let preferences = {};
-            users.forEach(user => {
+            config.activeUsers.forEach(user => {
                 const regionCount = {};
-                scheduleData[user].forEach(shift => {
+                config.scheduleData[user].forEach(shift => {
                     if (regions.includes(shift)) {
                         regionCount[shift] = (regionCount[shift] || 0) + 1;
                     }
@@ -1094,7 +1169,8 @@
         }
 
         function generateUserAnalytics(user) {
-            const shifts = scheduleData[user];
+            const config = weekConfigs[currentWeek];
+            const shifts = config.scheduleData[user] || [];
             const workingDays = shifts.filter(s => !['OFF', 'Leave'].includes(s)).length;
             const offDays = shifts.filter(s => s === 'OFF').length;
             const leaveDays = shifts.filter(s => s === 'Leave').length;
@@ -1120,10 +1196,11 @@
         }
 
         function generateTeamAnalytics() {
+            const config = weekConfigs[currentWeek];
             let html = '';
             
-            users.forEach(user => {
-                const shifts = scheduleData[user];
+            config.activeUsers.forEach(user => {
+                const shifts = config.scheduleData[user];
                 const workingDays = shifts.filter(s => !['OFF', 'Leave'].includes(s)).length;
                 
                 html += `
