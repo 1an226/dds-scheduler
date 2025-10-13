@@ -458,6 +458,51 @@
             background: #f8f9fa;
             border-radius: 6px;
         }
+
+        /* Editable Cell Styles */
+        .editable-cell {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .editable-cell:hover::after {
+            content: "✏️";
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 12px;
+        }
+
+        .shift-selector {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 100;
+            display: none;
+            flex-wrap: wrap;
+            width: 150px;
+        }
+
+        .shift-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            flex: 1 0 50%;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .shift-option:hover {
+            background-color: #f5f5f5;
+        }
+
+        .shift-option.rift { background-color: var(--rift); color: white; }
+        .shift-option.central { background-color: var(--central); color: white; }
+        .shift-option.d2 { background-color: var(--d2); color: white; }
+        .shift-option.d3 { background-color: var(--d3); color: white; }
+        .shift-option.off { background-color: var(--off); color: white; }
+        .shift-option.leave { background-color: #fff9e6; color: var(--warning); }
     </style>
 </head>
 <body>
@@ -630,6 +675,9 @@
         </div>
     </div>
 
+    <!-- Shift Selector (for editing cells) -->
+    <div id="shiftSelector" class="shift-selector"></div>
+
     <script>
         // User credentials
         const userCredentials = {
@@ -679,10 +727,25 @@
         let currentUser = '';
         let currentWeek = 41;
         let isRosterLocked = true; // Default to locked
+        let currentEditingCell = null;
 
         function initializePage() {
             checkLogin();
             updateLockedState();
+            setupShiftSelector();
+        }
+
+        function setupShiftSelector() {
+            const shiftSelector = document.getElementById('shiftSelector');
+            const shiftOptions = ['Rift', 'Central', 'D2', 'D3', 'OFF', 'Leave'];
+            
+            shiftOptions.forEach(shift => {
+                const option = document.createElement('div');
+                option.className = `shift-option ${shift.toLowerCase()}`;
+                option.textContent = shift;
+                option.onclick = () => selectShift(shift);
+                shiftSelector.appendChild(option);
+            });
         }
 
         function checkLogin() {
@@ -731,6 +794,20 @@
             } else {
                 lockedBanner.classList.add('hidden');
             }
+            
+            // Update cell editability
+            updateCellEditability();
+        }
+
+        function updateCellEditability() {
+            const cells = document.querySelectorAll('.schedule-table td:not(.user-cell)');
+            cells.forEach(cell => {
+                if (isRosterLocked || currentUser !== 'Ian') {
+                    cell.classList.remove('editable-cell');
+                } else {
+                    cell.classList.add('editable-cell');
+                }
+            });
         }
 
         // Week Navigation
@@ -901,7 +978,7 @@
                 row.appendChild(nameCell);
                 
                 // Shift cells with PROPER COLORS
-                config.scheduleData[user].forEach(shift => {
+                config.scheduleData[user].forEach((shift, index) => {
                     const cell = document.createElement('td');
                     
                     if (shift === 'Rift') cell.className = 'shift-rift';
@@ -912,6 +989,13 @@
                     else if (shift === 'Leave') cell.className = 'shift-leave';
                     
                     cell.textContent = shift;
+                    
+                    // Add click event for editing (only for admin when unlocked)
+                    if (currentUser === 'Ian' && !isRosterLocked) {
+                        cell.classList.add('editable-cell');
+                        cell.onclick = (e) => showShiftSelector(e, user, index);
+                    }
+                    
                     row.appendChild(cell);
                 });
                 
@@ -920,6 +1004,57 @@
 
             updateWeekDisplay();
         }
+
+        // Cell Editing Functions
+        function showShiftSelector(event, user, dayIndex) {
+            if (isRosterLocked || currentUser !== 'Ian') return;
+            
+            currentEditingCell = { user, dayIndex, element: event.target };
+            
+            const shiftSelector = document.getElementById('shiftSelector');
+            shiftSelector.style.display = 'flex';
+            shiftSelector.style.left = `${event.pageX}px`;
+            shiftSelector.style.top = `${event.pageY}px`;
+        }
+
+        function selectShift(shift) {
+            if (!currentEditingCell) return;
+            
+            const { user, dayIndex, element } = currentEditingCell;
+            
+            // Update the data model
+            weekConfigs[currentWeek].scheduleData[user][dayIndex] = shift;
+            
+            // Update the cell display
+            element.textContent = shift;
+            element.className = '';
+            
+            // Apply the correct class based on shift type
+            if (shift === 'Rift') element.className = 'shift-rift';
+            else if (shift === 'Central') element.className = 'shift-central';
+            else if (shift === 'D2') element.className = 'shift-d2';
+            else if (shift === 'D3') element.className = 'shift-d3';
+            else if (shift === 'OFF') element.className = 'shift-off';
+            else if (shift === 'Leave') element.className = 'shift-leave';
+            
+            // Keep it editable
+            if (currentUser === 'Ian' && !isRosterLocked) {
+                element.classList.add('editable-cell');
+            }
+            
+            // Hide the selector
+            document.getElementById('shiftSelector').style.display = 'none';
+            currentEditingCell = null;
+        }
+
+        // Close shift selector when clicking elsewhere
+        document.addEventListener('click', function(e) {
+            const shiftSelector = document.getElementById('shiftSelector');
+            if (shiftSelector.style.display === 'flex' && !shiftSelector.contains(e.target)) {
+                shiftSelector.style.display = 'none';
+                currentEditingCell = null;
+            }
+        });
 
         // Analytics Functions
         function showAnalytics() {
