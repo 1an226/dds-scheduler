@@ -169,6 +169,7 @@
             padding: 15px;
             border: 1px solid #ddd;
             text-align: center;
+            position: relative;
         }
         
         .user-cell {
@@ -461,40 +462,61 @@
 
         /* Editable Cell Styles */
         .editable-cell {
-            cursor: pointer;
+            cursor: pointer !important;
             position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .editable-cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 2px var(--secondary);
+            z-index: 10;
         }
 
         .editable-cell:hover::after {
             content: "✏️";
             position: absolute;
-            top: 5px;
-            right: 5px;
-            font-size: 12px;
+            top: 2px;
+            right: 2px;
+            font-size: 10px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
+        /* Shift Selector Styles */
         .shift-selector {
-            position: absolute;
+            position: fixed;
             background: white;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            z-index: 100;
+            border: 2px solid var(--secondary);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
             display: none;
             flex-wrap: wrap;
-            width: 150px;
+            width: 180px;
+            padding: 5px;
         }
 
         .shift-option {
-            padding: 8px 12px;
+            padding: 10px 12px;
             cursor: pointer;
             flex: 1 0 50%;
             text-align: center;
-            border-bottom: 1px solid #eee;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin: 2px;
+            font-weight: bold;
+            transition: all 0.2s ease;
         }
 
         .shift-option:hover {
-            background-color: #f5f5f5;
+            transform: scale(1.05);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .shift-option.rift { background-color: var(--rift); color: white; }
@@ -502,7 +524,7 @@
         .shift-option.d2 { background-color: var(--d2); color: white; }
         .shift-option.d3 { background-color: var(--d3); color: white; }
         .shift-option.off { background-color: var(--off); color: white; }
-        .shift-option.leave { background-color: #fff9e6; color: var(--warning); }
+        .shift-option.leave { background-color: #fff9e6; color: var(--warning); border: 1px solid var(--warning); }
     </style>
 </head>
 <body>
@@ -746,6 +768,14 @@
                 option.onclick = () => selectShift(shift);
                 shiftSelector.appendChild(option);
             });
+
+            // Close selector when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!shiftSelector.contains(e.target) && !e.target.classList.contains('editable-cell')) {
+                    shiftSelector.style.display = 'none';
+                    currentEditingCell = null;
+                }
+            });
         }
 
         function checkLogin() {
@@ -804,8 +834,15 @@
             cells.forEach(cell => {
                 if (isRosterLocked || currentUser !== 'Ian') {
                     cell.classList.remove('editable-cell');
+                    cell.onclick = null;
                 } else {
                     cell.classList.add('editable-cell');
+                    // Find user and day index for this cell
+                    const row = cell.parentElement;
+                    const userName = row.cells[0].textContent.replace(/ \(.*\)/, '');
+                    const dayIndex = Array.from(row.cells).indexOf(cell) - 1; // -1 because first cell is name
+                    
+                    cell.onclick = (e) => showShiftSelector(e, userName, dayIndex);
                 }
             });
         }
@@ -990,11 +1027,9 @@
                     
                     cell.textContent = shift;
                     
-                    // Add click event for editing (only for admin when unlocked)
-                    if (currentUser === 'Ian' && !isRosterLocked) {
-                        cell.classList.add('editable-cell');
-                        cell.onclick = (e) => showShiftSelector(e, user, index);
-                    }
+                    // Store user and day index as data attributes
+                    cell.setAttribute('data-user', user);
+                    cell.setAttribute('data-day', index);
                     
                     row.appendChild(cell);
                 });
@@ -1003,6 +1038,7 @@
             });
 
             updateWeekDisplay();
+            updateCellEditability(); // Make sure editability is set after rendering
         }
 
         // Cell Editing Functions
@@ -1012,15 +1048,22 @@
             currentEditingCell = { user, dayIndex, element: event.target };
             
             const shiftSelector = document.getElementById('shiftSelector');
+            const rect = event.target.getBoundingClientRect();
+            
+            // Position selector near the cell
+            shiftSelector.style.left = `${rect.left + window.pageXOffset}px`;
+            shiftSelector.style.top = `${rect.bottom + window.pageYOffset + 5}px`;
             shiftSelector.style.display = 'flex';
-            shiftSelector.style.left = `${event.pageX}px`;
-            shiftSelector.style.top = `${event.pageY}px`;
+            
+            event.stopPropagation(); // Prevent immediate closing
         }
 
         function selectShift(shift) {
             if (!currentEditingCell) return;
             
             const { user, dayIndex, element } = currentEditingCell;
+            
+            console.log(`Changing ${user}'s ${days[dayIndex]} shift to ${shift}`);
             
             // Update the data model
             weekConfigs[currentWeek].scheduleData[user][dayIndex] = shift;
@@ -1037,24 +1080,13 @@
             else if (shift === 'OFF') element.className = 'shift-off';
             else if (shift === 'Leave') element.className = 'shift-leave';
             
-            // Keep it editable
-            if (currentUser === 'Ian' && !isRosterLocked) {
-                element.classList.add('editable-cell');
-            }
-            
             // Hide the selector
             document.getElementById('shiftSelector').style.display = 'none';
             currentEditingCell = null;
+            
+            // Re-apply editability to maintain click handlers
+            updateCellEditability();
         }
-
-        // Close shift selector when clicking elsewhere
-        document.addEventListener('click', function(e) {
-            const shiftSelector = document.getElementById('shiftSelector');
-            if (shiftSelector.style.display === 'flex' && !shiftSelector.contains(e.target)) {
-                shiftSelector.style.display = 'none';
-                currentEditingCell = null;
-            }
-        });
 
         // Analytics Functions
         function showAnalytics() {
@@ -1360,6 +1392,7 @@
                 hideWeeklySummary();
                 hideShiftPatterns();
                 hideLeaveTracker();
+                document.getElementById('shiftSelector').style.display = 'none';
             }
         });
 
