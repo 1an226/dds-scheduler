@@ -488,44 +488,6 @@
             align-items: center;
             justify-content: center;
         }
-
-        /* Shift Selector Styles */
-        .shift-selector {
-            position: fixed;
-            background: white;
-            border: 2px solid var(--secondary);
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 1000;
-            display: none;
-            flex-wrap: wrap;
-            width: 180px;
-            padding: 5px;
-        }
-
-        .shift-option {
-            padding: 10px 12px;
-            cursor: pointer;
-            flex: 1 0 50%;
-            text-align: center;
-            border: 1px solid #eee;
-            border-radius: 4px;
-            margin: 2px;
-            font-weight: bold;
-            transition: all 0.2s ease;
-        }
-
-        .shift-option:hover {
-            transform: scale(1.05);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .shift-option.rift { background-color: var(--rift); color: white; }
-        .shift-option.central { background-color: var(--central); color: white; }
-        .shift-option.d2 { background-color: var(--d2); color: white; }
-        .shift-option.d3 { background-color: var(--d3); color: white; }
-        .shift-option.off { background-color: var(--off); color: white; }
-        .shift-option.leave { background-color: #fff9e6; color: var(--warning); border: 1px solid var(--warning); }
     </style>
 </head>
 <body>
@@ -698,9 +660,6 @@
         </div>
     </div>
 
-    <!-- Shift Selector (for editing cells) -->
-    <div id="shiftSelector" class="shift-selector"></div>
-
     <script>
         // User credentials
         const userCredentials = {
@@ -750,41 +709,18 @@
         let currentUser = '';
         let currentWeek = 42; // Start with Week 42
         let isRosterLocked = true; // Default to locked
-        let currentEditingCell = null;
+        let isAdmin = false;
 
         function initializePage() {
             checkLogin();
             updateLockedState();
-            setupShiftSelector();
-        }
-
-        function setupShiftSelector() {
-            const shiftSelector = document.getElementById('shiftSelector');
-            const shiftOptions = ['Rift', 'Central', 'D2', 'D3', 'OFF', 'Leave'];
-            
-            shiftSelector.innerHTML = ''; // Clear existing options
-            
-            shiftOptions.forEach(shift => {
-                const option = document.createElement('div');
-                option.className = `shift-option ${shift.toLowerCase()}`;
-                option.textContent = shift;
-                option.onclick = () => selectShift(shift);
-                shiftSelector.appendChild(option);
-            });
-
-            // Close selector when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!shiftSelector.contains(e.target) && !e.target.classList.contains('editable-cell')) {
-                    shiftSelector.style.display = 'none';
-                    currentEditingCell = null;
-                }
-            });
         }
 
         function checkLogin() {
             const savedUser = localStorage.getItem('currentUser');
             if (savedUser) {
                 currentUser = savedUser;
+                isAdmin = currentUser === 'Ian';
                 showMainApp();
             }
         }
@@ -803,8 +739,6 @@
         }
 
         function setupUserExperience() {
-            const isAdmin = currentUser === 'Ian';
-            
             document.getElementById('loggedInUser').textContent = 
                 currentUser + (isAdmin ? ' (Admin)' : '');
             document.getElementById('userStatus').textContent = 
@@ -842,19 +776,71 @@
             const cells = document.querySelectorAll('.schedule-table td:not(.user-cell)');
             cells.forEach(cell => {
                 // Week 41 is always locked, Week 42 can be edited by admin when unlocked
-                if (isRosterLocked || currentUser !== 'Ian' || currentWeek === 41) {
+                if (isRosterLocked || !isAdmin || currentWeek === 41) {
                     cell.classList.remove('editable-cell');
                     cell.onclick = null;
                 } else {
                     cell.classList.add('editable-cell');
-                    // Find user and day index for this cell
-                    const row = cell.parentElement;
-                    const userName = row.cells[0].textContent.replace(/ \(.*\)/, '');
-                    const dayIndex = Array.from(row.cells).indexOf(cell) - 1; // -1 because first cell is name
-                    
-                    cell.onclick = (e) => showShiftSelector(e, userName, dayIndex);
+                    cell.onclick = handleCellClick;
                 }
             });
+        }
+
+        // === Simple Click-to-Cycle Editing ===
+        function handleCellClick(event) {
+            // Week 41 is always locked
+            if (currentWeek === 41) {
+                alert('Week 41 is locked for historical reference. Please edit Week 42 instead.');
+                return;
+            }
+            
+            if (isRosterLocked || !isAdmin) return;
+            
+            const cell = event.target;
+            const userName = cell.dataset.user;
+            const dayIndex = parseInt(cell.dataset.day);
+    
+            const currentAssignment = cell.textContent;
+            const shiftOptions = ['Rift', 'Central', 'D2', 'D3', 'OFF', 'Leave'];
+            
+            // Find current assignment in options
+            let currentIndex = shiftOptions.indexOf(currentAssignment);
+            if (currentIndex === -1) {
+                // If current assignment not found (like "Click to set"), start from beginning
+                currentIndex = -1;
+            }
+            
+            // Cycle to next option
+            const nextIndex = (currentIndex + 1) % shiftOptions.length;
+            const nextAssignment = shiftOptions[nextIndex];
+            
+            // Update the data model
+            weekConfigs[currentWeek].scheduleData[userName][dayIndex] = nextAssignment;
+            
+            // Update the cell display
+            updateCellAppearance(cell, nextAssignment);
+        }
+
+        function updateCellAppearance(cell, assignment) {
+            cell.textContent = assignment;
+            cell.className = '';
+            
+            // Apply the correct class based on shift type
+            if (assignment === 'Rift') cell.className = 'shift-rift';
+            else if (assignment === 'Central') cell.className = 'shift-central';
+            else if (assignment === 'D2') cell.className = 'shift-d2';
+            else if (assignment === 'D3') cell.className = 'shift-d3';
+            else if (assignment === 'OFF') cell.className = 'shift-off';
+            else if (assignment === 'Leave') cell.className = 'shift-leave';
+            else if (assignment === '') {
+                cell.className = 'shift-empty';
+                cell.textContent = 'Click to set';
+            }
+            
+            // Keep it editable
+            if (isAdmin && !isRosterLocked && currentWeek !== 41) {
+                cell.classList.add('editable-cell');
+            }
         }
 
         // Week Navigation
@@ -997,6 +983,7 @@
             
             if (password === userCredentials[selectedUser]) {
                 currentUser = selectedUser;
+                isAdmin = currentUser === 'Ian';
                 localStorage.setItem('currentUser', currentUser);
                 showMainApp();
             } else {
@@ -1042,22 +1029,12 @@
                 config.scheduleData[user].forEach((shift, index) => {
                     const cell = document.createElement('td');
                     
-                    if (shift === 'Rift') cell.className = 'shift-rift';
-                    else if (shift === 'Central') cell.className = 'shift-central';
-                    else if (shift === 'D2') cell.className = 'shift-d2';
-                    else if (shift === 'D3') cell.className = 'shift-d3';
-                    else if (shift === 'OFF') cell.className = 'shift-off';
-                    else if (shift === 'Leave') cell.className = 'shift-leave';
-                    else if (shift === '') {
-                        cell.className = 'shift-empty';
-                        cell.textContent = 'Click to set';
-                    } else {
-                        cell.textContent = shift;
-                    }
-                    
                     // Store user and day index as data attributes
                     cell.setAttribute('data-user', user);
                     cell.setAttribute('data-day', index);
+                    
+                    // Set initial appearance
+                    updateCellAppearance(cell, shift);
                     
                     row.appendChild(cell);
                 });
@@ -1069,66 +1046,13 @@
             updateCellEditability(); // Make sure editability is set after rendering
         }
 
-        // Cell Editing Functions
-        function showShiftSelector(event, user, dayIndex) {
-            // Week 41 is always locked
-            if (currentWeek === 41) {
-                alert('Week 41 is locked for historical reference. Please edit Week 42 instead.');
-                return;
-            }
-            
-            if (isRosterLocked || currentUser !== 'Ian') return;
-            
-            currentEditingCell = { user, dayIndex, element: event.target };
-            
-            const shiftSelector = document.getElementById('shiftSelector');
-            const rect = event.target.getBoundingClientRect();
-            
-            // Position selector near the cell
-            shiftSelector.style.left = `${rect.left + window.pageXOffset}px`;
-            shiftSelector.style.top = `${rect.bottom + window.pageYOffset + 5}px`;
-            shiftSelector.style.display = 'flex';
-            
-            event.stopPropagation(); // Prevent immediate closing
-        }
-
-        function selectShift(shift) {
-            if (!currentEditingCell) return;
-            
-            const { user, dayIndex, element } = currentEditingCell;
-            
-            console.log(`Changing ${user}'s ${days[dayIndex]} shift to ${shift}`);
-            
-            // Update the data model
-            weekConfigs[currentWeek].scheduleData[user][dayIndex] = shift;
-            
-            // Update the cell display
-            element.textContent = shift;
-            element.className = '';
-            
-            // Apply the correct class based on shift type
-            if (shift === 'Rift') element.className = 'shift-rift';
-            else if (shift === 'Central') element.className = 'shift-central';
-            else if (shift === 'D2') element.className = 'shift-d2';
-            else if (shift === 'D3') element.className = 'shift-d3';
-            else if (shift === 'OFF') element.className = 'shift-off';
-            else if (shift === 'Leave') element.className = 'shift-leave';
-            
-            // Hide the selector
-            document.getElementById('shiftSelector').style.display = 'none';
-            currentEditingCell = null;
-            
-            // Re-apply editability to maintain click handlers
-            updateCellEditability();
-        }
-
         // Analytics Functions
         function showAnalytics() {
             const modal = document.getElementById('analyticsModal');
             const title = document.getElementById('analyticsTitle');
             const content = document.getElementById('analyticsContent');
             
-            if (currentUser === 'Ian') {
+            if (isAdmin) {
                 title.textContent = 'Team Analytics - Admin View';
                 content.innerHTML = generateTeamAnalytics();
             } else {
@@ -1446,7 +1370,6 @@
                 hideWeeklySummary();
                 hideShiftPatterns();
                 hideLeaveTracker();
-                document.getElementById('shiftSelector').style.display = 'none';
             }
         });
 
