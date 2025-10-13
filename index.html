@@ -188,6 +188,7 @@
         .shift-d3 { background-color: var(--d3); color: white; font-weight: bold; }
         .shift-off { background-color: var(--off); color: white; font-weight: bold; }
         .shift-leave { background-color: #fff9e6; color: var(--warning); font-weight: bold; }
+        .shift-empty { background-color: #f8f9fa; color: #666; font-style: italic; }
         
         .on-leave {
             color: #95a5a6;
@@ -591,8 +592,8 @@
             <div class="week-nav">
                 <button class="btn" onclick="changeWeek(-1)">&lt; Previous</button>
                 <div>
-                    <div class="week-display" id="weekDisplay">Week 41, 2025</div>
-                    <div class="date-range" id="dateRange">6th Oct - 12th Oct 2025</div>
+                    <div class="week-display" id="weekDisplay">Week 42, 2025</div>
+                    <div class="date-range" id="dateRange">13th Oct - 19th Oct 2025</div>
                 </div>
                 <button class="btn" onclick="changeWeek(1)">Next &gt;</button>
             </div>
@@ -610,13 +611,13 @@
             <thead>
                 <tr>
                     <th>Name</th>
-                    <th>Monday<br><span id="mondayDate">6th Oct</span></th>
-                    <th>Tuesday<br><span id="tuesdayDate">7th Oct</span></th>
-                    <th>Wednesday<br><span id="wednesdayDate">8th Oct</span></th>
-                    <th>Thursday<br><span id="thursdayDate">9th Oct</span></th>
-                    <th>Friday<br><span id="fridayDate">10th Oct</span></th>
-                    <th>Saturday<br><span id="saturdayDate">11th Oct</span></th>
-                    <th>Sunday<br><span id="sundayDate">12th Oct</span></th>
+                    <th>Monday<br><span id="mondayDate">13th Oct</span></th>
+                    <th>Tuesday<br><span id="tuesdayDate">14th Oct</span></th>
+                    <th>Wednesday<br><span id="wednesdayDate">15th Oct</span></th>
+                    <th>Thursday<br><span id="thursdayDate">16th Oct</span></th>
+                    <th>Friday<br><span id="fridayDate">17th Oct</span></th>
+                    <th>Saturday<br><span id="saturdayDate">18th Oct</span></th>
+                    <th>Sunday<br><span id="sundayDate">19th Oct</span></th>
                 </tr>
             </thead>
             <tbody id="scheduleBody">
@@ -626,7 +627,7 @@
         
         <div class="team-updates">
             <h3>Team Updates</h3>
-            <p id="teamUpdatesText">Emma is on leave from Wednesday until February 2026 - Janet returns on Saturday</p>
+            <p id="teamUpdatesText">Emma is on long-term leave until February 2026</p>
             <p><strong>TPC - Mostly sunny</strong></p>
         </div>
     </div>
@@ -735,11 +736,11 @@
                 teamUpdates: 'Emma is on long-term leave until February 2026',
                 activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'], // Emma removed
                 scheduleData: {
-                    'Ian': ['D2', 'Rift', 'Central', 'D3', 'Rift', 'D2', 'Central'],
-                    'Kim': ['Central', 'D2', 'Rift', 'D2', 'D3', 'Central', 'Rift'],
-                    'Kevo': ['Rift', 'D3', 'D2', 'Rift', 'Central', 'D3', 'OFF'],
-                    'Wendy': ['D3', 'Central', 'D3', 'Central', 'D2', 'OFF', 'D2'],
-                    'Janet': ['OFF', 'OFF', 'OFF', 'OFF', 'Rift', 'D3', 'Central']
+                    'Ian': ['', '', '', '', '', '', ''],
+                    'Kim': ['', '', '', '', '', '', ''],
+                    'Kevo': ['', '', '', '', '', '', ''],
+                    'Wendy': ['', '', '', '', '', '', ''],
+                    'Janet': ['', '', '', '', '', '', '']
                 }
             }
         };
@@ -747,7 +748,7 @@
         const regions = ['Rift', 'Central', 'D2', 'D3'];
         const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         let currentUser = '';
-        let currentWeek = 41;
+        let currentWeek = 42; // Start with Week 42
         let isRosterLocked = true; // Default to locked
         let currentEditingCell = null;
 
@@ -760,6 +761,8 @@
         function setupShiftSelector() {
             const shiftSelector = document.getElementById('shiftSelector');
             const shiftOptions = ['Rift', 'Central', 'D2', 'D3', 'OFF', 'Leave'];
+            
+            shiftSelector.innerHTML = ''; // Clear existing options
             
             shiftOptions.forEach(shift => {
                 const option = document.createElement('div');
@@ -819,8 +822,14 @@
 
         function updateLockedState() {
             const lockedBanner = document.getElementById('lockedBanner');
-            if (isRosterLocked) {
+            // Week 41 is always locked, Week 42 can be unlocked
+            if (isRosterLocked || currentWeek === 41) {
                 lockedBanner.classList.remove('hidden');
+                if (currentWeek === 41) {
+                    lockedBanner.textContent = '🔒 Week 41 Roster Locked - Historical View Only';
+                } else {
+                    lockedBanner.textContent = '🔒 Roster Locked - View Only Mode';
+                }
             } else {
                 lockedBanner.classList.add('hidden');
             }
@@ -832,7 +841,8 @@
         function updateCellEditability() {
             const cells = document.querySelectorAll('.schedule-table td:not(.user-cell)');
             cells.forEach(cell => {
-                if (isRosterLocked || currentUser !== 'Ian') {
+                // Week 41 is always locked, Week 42 can be edited by admin when unlocked
+                if (isRosterLocked || currentUser !== 'Ian' || currentWeek === 41) {
                     cell.classList.remove('editable-cell');
                     cell.onclick = null;
                 } else {
@@ -856,6 +866,12 @@
                 currentWeek = newWeek;
                 renderSchedule();
                 updateWeekDisplay();
+                
+                // Auto-lock Week 41 when navigating to it
+                if (currentWeek === 41) {
+                    isRosterLocked = true;
+                }
+                updateLockedState();
             } else {
                 alert(`Week ${newWeek} data not available`);
             }
@@ -903,6 +919,10 @@
 
         // Admin Functions
         function lockRoster() {
+            if (currentWeek === 41) {
+                alert('Week 41 is permanently locked for historical reference.');
+                return;
+            }
             isRosterLocked = true;
             updateLockedState();
             alert('Roster locked! All users now have view-only access.');
@@ -910,6 +930,10 @@
         }
 
         function unlockRoster() {
+            if (currentWeek === 41) {
+                alert('Week 41 is permanently locked for historical reference.');
+                return;
+            }
             isRosterLocked = false;
             updateLockedState();
             alert('Roster unlocked! Admin can now make changes.');
@@ -932,7 +956,7 @@
             config.activeUsers.forEach(user => {
                 config.scheduleData[user].forEach((shift, dayIndex) => {
                     const dayName = days[dayIndex];
-                    jsonData.scheduleData[`${user}-${dayName}`] = shift;
+                    jsonData.scheduleData[`${user}-${dayName}`] = shift || 'Empty';
                 });
             });
 
@@ -1024,8 +1048,12 @@
                     else if (shift === 'D3') cell.className = 'shift-d3';
                     else if (shift === 'OFF') cell.className = 'shift-off';
                     else if (shift === 'Leave') cell.className = 'shift-leave';
-                    
-                    cell.textContent = shift;
+                    else if (shift === '') {
+                        cell.className = 'shift-empty';
+                        cell.textContent = 'Click to set';
+                    } else {
+                        cell.textContent = shift;
+                    }
                     
                     // Store user and day index as data attributes
                     cell.setAttribute('data-user', user);
@@ -1043,6 +1071,12 @@
 
         // Cell Editing Functions
         function showShiftSelector(event, user, dayIndex) {
+            // Week 41 is always locked
+            if (currentWeek === 41) {
+                alert('Week 41 is locked for historical reference. Please edit Week 42 instead.');
+                return;
+            }
+            
             if (isRosterLocked || currentUser !== 'Ian') return;
             
             currentEditingCell = { user, dayIndex, element: event.target };
@@ -1176,6 +1210,10 @@
                 config.scheduleData[user].some(shift => regions.includes(shift))
             ).length;
 
+            const emptyCells = config.activeUsers.reduce((total, user) => {
+                return total + config.scheduleData[user].filter(shift => shift === '').length;
+            }, 0);
+
             return `
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -1187,8 +1225,8 @@
                         <div class="stat-label">Active Staff</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number">${Object.values(regionCounts).reduce((a, b) => a + b, 0)}</div>
-                        <div class="stat-label">Region Coverage</div>
+                        <div class="stat-number">${emptyCells}</div>
+                        <div class="stat-label">Empty Cells</div>
                     </div>
                 </div>
 
@@ -1217,7 +1255,7 @@
             
             config.activeUsers.forEach(user => {
                 const shifts = config.scheduleData[user];
-                const pattern = shifts.join(' → ');
+                const pattern = shifts.map(shift => shift || 'Empty').join(' → ');
                 const regionFrequency = {};
                 
                 shifts.forEach(shift => {
@@ -1229,7 +1267,8 @@
                 userPatterns[user] = {
                     pattern: pattern,
                     frequency: regionFrequency,
-                    totalShifts: Object.values(regionFrequency).reduce((a, b) => a + b, 0)
+                    totalShifts: Object.values(regionFrequency).reduce((a, b) => a + b, 0),
+                    emptyDays: shifts.filter(shift => shift === '').length
                 };
             });
 
@@ -1239,7 +1278,7 @@
                     <div class="pattern-item">
                         <strong>${user}</strong><br>
                         <small>Pattern: ${data.pattern}</small><br>
-                        <small>Total shifts: ${data.totalShifts}</small><br>
+                        <small>Total shifts: ${data.totalShifts} • Empty days: ${data.emptyDays}</small><br>
                         ${Object.entries(data.frequency).map(([region, count]) => 
                             `<span style="color: #666">${region}: ${count} </span>`).join('')}
                     </div>
@@ -1249,7 +1288,7 @@
                 ${Object.entries(calculateRegionPreferences()).map(([user, preferences]) => `
                     <div class="metric">
                         <div class="metric-label">${user}</div>
-                        <div class="metric-value">${preferences.join(', ')}</div>
+                        <div class="metric-value">${preferences.length > 0 ? preferences.join(', ') : 'No shifts assigned'}</div>
                     </div>
                 `).join('')}
             `;
@@ -1266,6 +1305,7 @@
             allUsersToCheck.forEach(user => {
                 let leaveDays = 0;
                 let offDays = 0;
+                let emptyDays = 0;
                 
                 if (user === 'Emma' && currentWeek >= 42) {
                     // Emma is on long-term leave
@@ -1273,20 +1313,24 @@
                         user: user,
                         leaveDays: 7, // Full week on leave
                         offDays: 0,
+                        emptyDays: 0,
                         status: 'On long-term leave until Feb 2026'
                     });
                 } else {
                     const shifts = config.scheduleData[user] || [];
                     leaveDays = shifts.filter(shift => shift === 'Leave').length;
                     offDays = shifts.filter(shift => shift === 'OFF').length;
+                    emptyDays = shifts.filter(shift => shift === '').length;
                     
-                    if (leaveDays > 0 || user === 'Emma') {
+                    if (leaveDays > 0 || user === 'Emma' || emptyDays > 0) {
                         leaveData.push({
                             user: user,
                             leaveDays: leaveDays,
                             offDays: offDays,
+                            emptyDays: emptyDays,
                             status: user === 'Emma' ? 'On long-term leave until Feb 2026' : 
-                                   leaveDays > 0 ? `On leave (${leaveDays} days)` : 'Available'
+                                   leaveDays > 0 ? `On leave (${leaveDays} days)` : 
+                                   emptyDays > 0 ? `Pending schedule (${emptyDays} days)` : 'Available'
                         });
                     }
                 }
@@ -1298,7 +1342,7 @@
                     <div class="leave-item">
                         <strong>${data.user}</strong><br>
                         <span>${data.status}</span><br>
-                        <small>Leave days: ${data.leaveDays} • OFF days: ${data.offDays}</small>
+                        <small>Leave days: ${data.leaveDays} • OFF days: ${data.offDays} • Empty: ${data.emptyDays}</small>
                     </div>
                 `).join('')}
 
@@ -1311,6 +1355,10 @@
                     <div class="stat-card">
                         <div class="stat-number">${config.activeUsers.length}</div>
                         <div class="stat-label">Available Staff</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${leaveData.reduce((sum, d) => sum + d.emptyDays, 0)}</div>
+                        <div class="stat-label">Pending Schedule</div>
                     </div>
                 </div>
             `;
@@ -1338,9 +1386,10 @@
         function generateUserAnalytics(user) {
             const config = weekConfigs[currentWeek];
             const shifts = config.scheduleData[user] || [];
-            const workingDays = shifts.filter(s => !['OFF', 'Leave'].includes(s)).length;
+            const workingDays = shifts.filter(s => !['OFF', 'Leave', ''].includes(s)).length;
             const offDays = shifts.filter(s => s === 'OFF').length;
             const leaveDays = shifts.filter(s => s === 'Leave').length;
+            const emptyDays = shifts.filter(s => s === '').length;
             
             return `
                 <div class="metric">
@@ -1356,8 +1405,12 @@
                     <div class="metric-value">${leaveDays}</div>
                 </div>
                 <div class="metric">
+                    <div class="metric-label">Empty Days</div>
+                    <div class="metric-value">${emptyDays}</div>
+                </div>
+                <div class="metric">
                     <div class="metric-label">Total Scheduled</div>
-                    <div class="metric-value">${workingDays + offDays + leaveDays} days</div>
+                    <div class="metric-value">${workingDays + offDays + leaveDays} of ${shifts.length} days</div>
                 </div>
             `;
         }
@@ -1368,12 +1421,13 @@
             
             config.activeUsers.forEach(user => {
                 const shifts = config.scheduleData[user];
-                const workingDays = shifts.filter(s => !['OFF', 'Leave'].includes(s)).length;
+                const workingDays = shifts.filter(s => !['OFF', 'Leave', ''].includes(s)).length;
+                const emptyDays = shifts.filter(s => s === '').length;
                 
                 html += `
                     <div class="metric">
                         <div class="metric-label">${user}</div>
-                        <div class="metric-value">${workingDays} working days</div>
+                        <div class="metric-value">${workingDays} working days${emptyDays > 0 ? ` (${emptyDays} empty)` : ''}</div>
                     </div>
                 `;
             });
