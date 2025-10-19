@@ -680,9 +680,48 @@
             'Janet': ['Rift', 'D3', 'Central', 'D2', 'Rift', 'D3', 'OFF']
         };
 
-        // Week configurations
-        const weekConfigs = {
-            41: {
+        // Function to get week start date for any week in 2025
+        function getWeekStartDate(weekNumber) {
+            const janFirst = new Date(2025, 0, 1);
+            const daysToAdd = (weekNumber - 1) * 7;
+            const weekStart = new Date(janFirst);
+            weekStart.setDate(janFirst.getDate() + daysToAdd);
+            return weekStart;
+        }
+
+        // Function to format date range for any week
+        function getWeekDateRange(weekNumber) {
+            const startDate = getWeekStartDate(weekNumber);
+            const endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + 6);
+            
+            const formatDate = (date) => {
+                const day = date.getDate();
+                const suffix = getDaySuffix(day);
+                const month = date.toLocaleDateString('en-US', { month: 'short' });
+                return `${day}${suffix} ${month}`;
+            };
+            
+            return `${formatDate(startDate)} - ${formatDate(endDate)} ${startDate.getFullYear()}`;
+        }
+
+        // Function to generate empty schedule for any week
+        function getEmptySchedule() {
+            return {
+                'Ian': ['', '', '', '', '', '', ''],
+                'Kim': ['', '', '', '', '', '', ''],
+                'Kevo': ['', '', '', '', '', '', ''],
+                'Wendy': ['', '', '', '', '', '', ''],
+                'Janet': ['', '', '', '', '', '', '']
+            };
+        }
+
+        // Generate week configurations for all weeks in 2025
+        const generateWeekConfigs = () => {
+            const configs = {};
+            
+            // Week 41 (pre-loaded historical data)
+            configs[41] = {
                 startDate: '2025-10-06',
                 endDate: '2025-10-12',
                 displayDate: '6th Oct - 12th Oct 2025',
@@ -696,21 +735,42 @@
                     'Wendy': ['Central', 'D2', 'Rift', 'D3', 'Central', 'OFF', 'D2'],
                     'Janet': ['OFF', 'OFF', 'OFF', 'OFF', 'OFF', 'D2', 'Rift']
                 }
-            },
-            42: {
+            };
+            
+            // Week 42 (pre-loaded current data)
+            configs[42] = {
                 startDate: '2025-10-13',
                 endDate: '2025-10-19',
                 displayDate: '13th Oct - 19th Oct 2025',
                 teamUpdates: 'Emma is on long-term leave until February 2026',
-                activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'], // Emma removed
-                scheduleData: preLoadedWeek42Data // Use the pre-loaded data
+                activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'],
+                scheduleData: preLoadedWeek42Data
+            };
+            
+            // Generate weeks 1-40 and 43-52 with empty schedules
+            for (let week = 1; week <= 52; week++) {
+                if (!configs[week]) {
+                    configs[week] = {
+                        startDate: getWeekStartDate(week).toISOString().split('T')[0],
+                        endDate: new Date(getWeekStartDate(week).getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                        displayDate: getWeekDateRange(week),
+                        teamUpdates: week < 42 ? 'Historical week - No data available' : 'Future week - Schedule pending',
+                        activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'],
+                        scheduleData: getEmptySchedule()
+                    };
+                }
             }
+            
+            return configs;
         };
+
+        const weekConfigs = generateWeekConfigs();
 
         const regions = ['Rift', 'Central', 'D2', 'D3'];
         const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         let currentUser = '';
         let currentWeek = 42; // Start with Week 42
+        let currentYear = 2025;
         let isRosterLocked = true; // Default to locked (Week 42 is now pre-loaded and locked)
         let isAdmin = false;
 
@@ -760,12 +820,13 @@
         function updateLockedState() {
             const lockedBanner = document.getElementById('lockedBanner');
             // Week 41 is always locked, Week 42 is now pre-loaded and locked
+            // Other weeks can be edited by admin
             if (isRosterLocked || currentWeek === 41) {
                 lockedBanner.classList.remove('hidden');
                 if (currentWeek === 41) {
                     lockedBanner.textContent = '🔒 Week 41 Roster Locked - Historical View Only';
                 } else {
-                    lockedBanner.textContent = '🔒 Week 42 Roster Locked - View Only Mode';
+                    lockedBanner.textContent = '🔒 Roster Locked - View Only Mode';
                 }
             } else {
                 lockedBanner.classList.add('hidden');
@@ -778,7 +839,7 @@
         function updateCellEditability() {
             const cells = document.querySelectorAll('.schedule-table td:not(.user-cell)');
             cells.forEach(cell => {
-                // Both weeks are locked by default
+                // Week 41 is always locked, other weeks can be edited by admin when unlocked
                 if (isRosterLocked || !isAdmin || currentWeek === 41) {
                     cell.classList.remove('editable-cell');
                     cell.onclick = null;
@@ -791,7 +852,7 @@
 
         // === Simple Click-to-Cycle Editing ===
         function handleCellClick(event) {
-            // Week 41 is always locked, Week 42 is locked by default
+            // Week 41 is always locked
             if (currentWeek === 41) {
                 alert('Week 41 is locked for historical reference.');
                 return;
@@ -835,6 +896,10 @@
             else if (assignment === 'D3') cell.className = 'shift-d3';
             else if (assignment === 'OFF') cell.className = 'shift-off';
             else if (assignment === 'Leave') cell.className = 'shift-leave';
+            else if (assignment === '') {
+                cell.className = 'shift-empty';
+                cell.textContent = 'Click to set';
+            }
             
             // Keep it editable if admin and unlocked
             if (isAdmin && !isRosterLocked && currentWeek !== 41) {
@@ -846,25 +911,25 @@
         function changeWeek(weekDelta) {
             const newWeek = currentWeek + weekDelta;
             
-            // Only allow navigation to weeks that exist in our config
-            if (weekConfigs[newWeek]) {
+            // Only allow navigation to weeks that exist (1-52 in 2025)
+            if (newWeek >= 1 && newWeek <= 52) {
                 currentWeek = newWeek;
                 renderSchedule();
                 updateWeekDisplay();
                 
-                // Auto-lock both weeks when navigating
+                // Auto-lock Week 41 when navigating to it
                 if (currentWeek === 41) {
                     isRosterLocked = true;
                 }
                 updateLockedState();
             } else {
-                alert(`Week ${newWeek} data not available`);
+                alert(`Week ${newWeek} is not available. Please stay within 2025 calendar.`);
             }
         }
 
         function updateWeekDisplay() {
             const config = weekConfigs[currentWeek];
-            document.getElementById('weekDisplay').textContent = `Week ${currentWeek}, 2025`;
+            document.getElementById('weekDisplay').textContent = `Week ${currentWeek}, ${currentYear}`;
             document.getElementById('dateRange').textContent = config.displayDate;
             document.getElementById('teamUpdatesText').textContent = config.teamUpdates;
             
@@ -931,7 +996,7 @@
                 scheduleData: {},
                 isRosterLocked: isRosterLocked,
                 currentWeek: currentWeek,
-                currentYear: 2025,
+                currentYear: currentYear,
                 dateRange: config.displayDate,
                 lastSavedTime: new Date().toISOString(),
                 updatedBy: currentUser
@@ -953,7 +1018,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `roster_week${currentWeek}_2025_${new Date().getTime()}.json`;
+            a.download = `roster_week${currentWeek}_${currentYear}_${new Date().getTime()}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
