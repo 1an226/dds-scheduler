@@ -17,6 +17,7 @@
             --central: #3498db;
             --d2: #2ecc71;
             --d3: #f39c12;
+            --others: #9b59b6;
             --off: #95a5a6;
         }
         
@@ -186,6 +187,7 @@
         .shift-central { background-color: var(--central); color: white; font-weight: bold; }
         .shift-d2 { background-color: var(--d2); color: white; font-weight: bold; }
         .shift-d3 { background-color: var(--d3); color: white; font-weight: bold; }
+        .shift-others { background-color: var(--others); color: white; font-weight: bold; }
         .shift-off { background-color: var(--off); color: white; font-weight: bold; }
         .shift-leave { background-color: #fff9e6; color: var(--warning); font-weight: bold; }
         .shift-empty { background-color: #f8f9fa; color: #666; font-style: italic; }
@@ -554,8 +556,8 @@
             <div class="week-nav">
                 <button class="btn" onclick="changeWeek(-1)">&lt; Previous</button>
                 <div>
-                    <div class="week-display" id="weekDisplay">Week 42, 2025</div>
-                    <div class="date-range" id="dateRange">13th Oct - 19th Oct 2025</div>
+                    <div class="week-display" id="weekDisplay">Week 43, 2025</div>
+                    <div class="date-range" id="dateRange">20th Oct - 26th Oct 2025</div>
                 </div>
                 <button class="btn" onclick="changeWeek(1)">Next &gt;</button>
             </div>
@@ -573,13 +575,13 @@
             <thead>
                 <tr>
                     <th>Name</th>
-                    <th>Monday<br><span id="mondayDate">13th Oct</span></th>
-                    <th>Tuesday<br><span id="tuesdayDate">14th Oct</span></th>
-                    <th>Wednesday<br><span id="wednesdayDate">15th Oct</span></th>
-                    <th>Thursday<br><span id="thursdayDate">16th Oct</span></th>
-                    <th>Friday<br><span id="fridayDate">17th Oct</span></th>
-                    <th>Saturday<br><span id="saturdayDate">18th Oct</span></th>
-                    <th>Sunday<br><span id="sundayDate">19th Oct</span></th>
+                    <th>Monday<br><span id="mondayDate">20th Oct</span></th>
+                    <th>Tuesday<br><span id="tuesdayDate">21st Oct</span></th>
+                    <th>Wednesday<br><span id="wednesdayDate">22nd Oct</span></th>
+                    <th>Thursday<br><span id="thursdayDate">23rd Oct</span></th>
+                    <th>Friday<br><span id="fridayDate">24th Oct</span></th>
+                    <th>Saturday<br><span id="saturdayDate">25th Oct</span></th>
+                    <th>Sunday<br><span id="sundayDate">26th Oct</span></th>
                 </tr>
             </thead>
             <tbody id="scheduleBody">
@@ -716,7 +718,7 @@
             };
         }
 
-        // Generate week configurations for all weeks in 2025
+        // Generate week configurations for weeks 41-52 in 2025
         const generateWeekConfigs = () => {
             const configs = {};
             
@@ -747,18 +749,26 @@
                 scheduleData: preLoadedWeek42Data
             };
             
-            // Generate weeks 1-40 and 43-52 with empty schedules
-            for (let week = 1; week <= 52; week++) {
-                if (!configs[week]) {
-                    configs[week] = {
-                        startDate: getWeekStartDate(week).toISOString().split('T')[0],
-                        endDate: new Date(getWeekStartDate(week).getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                        displayDate: getWeekDateRange(week),
-                        teamUpdates: week < 42 ? 'Historical week - No data available' : 'Future week - Schedule pending',
-                        activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'],
-                        scheduleData: getEmptySchedule()
-                    };
-                }
+            // Week 43 (current week starting October 20th)
+            configs[43] = {
+                startDate: '2025-10-20',
+                endDate: '2025-10-26',
+                displayDate: '20th Oct - 26th Oct 2025',
+                teamUpdates: 'Emma is on long-term leave until February 2026',
+                activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'],
+                scheduleData: getEmptySchedule()
+            };
+            
+            // Generate weeks 44-52 with empty schedules
+            for (let week = 44; week <= 52; week++) {
+                configs[week] = {
+                    startDate: getWeekStartDate(week).toISOString().split('T')[0],
+                    endDate: new Date(getWeekStartDate(week).getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    displayDate: getWeekDateRange(week),
+                    teamUpdates: 'Future week - Schedule pending',
+                    activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'],
+                    scheduleData: getEmptySchedule()
+                };
             }
             
             return configs;
@@ -766,12 +776,12 @@
 
         const weekConfigs = generateWeekConfigs();
 
-        const regions = ['Rift', 'Central', 'D2', 'D3'];
+        const regions = ['Rift', 'Central', 'D2', 'D3', 'Others'];
         const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         let currentUser = '';
-        let currentWeek = 42; // Start with Week 42
+        let currentWeek = 43; // Start with Week 43
         let currentYear = 2025;
-        let isRosterLocked = true; // Default to locked (Week 42 is now pre-loaded and locked)
+        let isRosterLocked = false; // Default to unlocked for current week
         let isAdmin = false;
 
         function initializePage() {
@@ -819,8 +829,7 @@
 
         function updateLockedState() {
             const lockedBanner = document.getElementById('lockedBanner');
-            // Week 41 is always locked, Week 42 is now pre-loaded and locked
-            // Other weeks can be edited by admin
+            // Week 41 is always locked, other weeks can be edited by admin
             if (isRosterLocked || currentWeek === 41) {
                 lockedBanner.classList.remove('hidden');
                 if (currentWeek === 41) {
@@ -865,7 +874,7 @@
             const dayIndex = parseInt(cell.dataset.day);
     
             const currentAssignment = cell.textContent;
-            const shiftOptions = ['Rift', 'Central', 'D2', 'D3', 'OFF', 'Leave'];
+            const shiftOptions = ['Rift', 'Central', 'D2', 'D3', 'Others', 'OFF', 'Leave'];
             
             // Find current assignment in options
             let currentIndex = shiftOptions.indexOf(currentAssignment);
@@ -894,6 +903,7 @@
             else if (assignment === 'Central') cell.className = 'shift-central';
             else if (assignment === 'D2') cell.className = 'shift-d2';
             else if (assignment === 'D3') cell.className = 'shift-d3';
+            else if (assignment === 'Others') cell.className = 'shift-others';
             else if (assignment === 'OFF') cell.className = 'shift-off';
             else if (assignment === 'Leave') cell.className = 'shift-leave';
             else if (assignment === '') {
@@ -911,8 +921,8 @@
         function changeWeek(weekDelta) {
             const newWeek = currentWeek + weekDelta;
             
-            // Only allow navigation to weeks that exist (1-52 in 2025)
-            if (newWeek >= 1 && newWeek <= 52) {
+            // Only allow navigation to weeks that exist (41-52 in 2025)
+            if (newWeek >= 41 && newWeek <= 52) {
                 currentWeek = newWeek;
                 renderSchedule();
                 updateWeekDisplay();
@@ -920,10 +930,12 @@
                 // Auto-lock Week 41 when navigating to it
                 if (currentWeek === 41) {
                     isRosterLocked = true;
+                } else {
+                    isRosterLocked = false;
                 }
                 updateLockedState();
             } else {
-                alert(`Week ${newWeek} is not available. Please stay within 2025 calendar.`);
+                alert(`Week ${newWeek} is not available. Please stay within weeks 41-52.`);
             }
         }
 
@@ -1179,10 +1191,10 @@
             const config = weekConfigs[currentWeek];
             // Calculate statistics
             let totalShifts = 0;
-            let regionCounts = { Rift: 0, Central: 0, D2: 0, D3: 0 };
+            let regionCounts = { Rift: 0, Central: 0, D2: 0, D3: 0, Others: 0 };
             let dayCoverage = {};
             
-            days.forEach(day => dayCoverage[day] = { Rift: 0, Central: 0, D2: 0, D3: 0 });
+            days.forEach(day => dayCoverage[day] = { Rift: 0, Central: 0, D2: 0, D3: 0, Others: 0 });
             
             config.activeUsers.forEach(user => {
                 config.scheduleData[user].forEach((shift, dayIndex) => {
