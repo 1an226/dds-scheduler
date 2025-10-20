@@ -682,6 +682,15 @@
             'Janet': ['Rift', 'D3', 'Central', 'D2', 'Rift', 'D3', 'OFF']
         };
 
+        // Pre-loaded Week 43 data from your JSON
+        const preLoadedWeek43Data = {
+            'Ian': ['D3', 'Central', 'D3', 'D2', 'Rift', 'Others', 'Central'],
+            'Kim': ['Rift', 'OFF', 'Central', 'D3', 'D2', 'Central', 'D3'],
+            'Kevo': ['D2', 'Rift', 'Others', 'OFF', 'D3', 'D2', 'Central'],
+            'Wendy': ['Central', 'D3', 'D2', 'Rift', 'Central', 'D3', 'OFF'],
+            'Janet': ['Others', 'D2', 'Rift', 'Central', 'OFF', 'Rift', 'D2']
+        };
+
         // Function to get week start date for any week in 2025
         function getWeekStartDate(weekNumber) {
             const janFirst = new Date(2025, 0, 1);
@@ -749,14 +758,14 @@
                 scheduleData: preLoadedWeek42Data
             };
             
-            // Week 43 (current week starting October 20th)
+            // Week 43 (current week starting October 20th) - PRE-LOADED AND LOCKED
             configs[43] = {
                 startDate: '2025-10-20',
                 endDate: '2025-10-26',
                 displayDate: '20th Oct - 26th Oct 2025',
                 teamUpdates: 'Emma is on long-term leave until February 2026',
                 activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'],
-                scheduleData: getEmptySchedule()
+                scheduleData: preLoadedWeek43Data
             };
             
             // Generate weeks 44-52 with empty schedules
@@ -781,7 +790,7 @@
         let currentUser = '';
         let currentWeek = 43; // Start with Week 43
         let currentYear = 2025;
-        let isRosterLocked = false; // Default to unlocked for current week
+        let isRosterLocked = true; // Week 43 is pre-loaded and locked by default
         let isAdmin = false;
 
         function initializePage() {
@@ -829,11 +838,13 @@
 
         function updateLockedState() {
             const lockedBanner = document.getElementById('lockedBanner');
-            // Week 41 is always locked, other weeks can be edited by admin
-            if (isRosterLocked || currentWeek === 41) {
+            // Week 41 and 43 are always locked, other weeks can be edited by admin
+            if (isRosterLocked || currentWeek === 41 || currentWeek === 43) {
                 lockedBanner.classList.remove('hidden');
                 if (currentWeek === 41) {
                     lockedBanner.textContent = '🔒 Week 41 Roster Locked - Historical View Only';
+                } else if (currentWeek === 43) {
+                    lockedBanner.textContent = '🔒 Week 43 Roster Locked - View Only Mode';
                 } else {
                     lockedBanner.textContent = '🔒 Roster Locked - View Only Mode';
                 }
@@ -848,8 +859,8 @@
         function updateCellEditability() {
             const cells = document.querySelectorAll('.schedule-table td:not(.user-cell)');
             cells.forEach(cell => {
-                // Week 41 is always locked, other weeks can be edited by admin when unlocked
-                if (isRosterLocked || !isAdmin || currentWeek === 41) {
+                // Week 41 and 43 are always locked, other weeks can be edited by admin when unlocked
+                if (isRosterLocked || !isAdmin || currentWeek === 41 || currentWeek === 43) {
                     cell.classList.remove('editable-cell');
                     cell.onclick = null;
                 } else {
@@ -861,9 +872,9 @@
 
         // === Simple Click-to-Cycle Editing ===
         function handleCellClick(event) {
-            // Week 41 is always locked
-            if (currentWeek === 41) {
-                alert('Week 41 is locked for historical reference.');
+            // Week 41 and 43 are always locked
+            if (currentWeek === 41 || currentWeek === 43) {
+                alert(`Week ${currentWeek} is locked for reference.`);
                 return;
             }
             
@@ -912,7 +923,7 @@
             }
             
             // Keep it editable if admin and unlocked
-            if (isAdmin && !isRosterLocked && currentWeek !== 41) {
+            if (isAdmin && !isRosterLocked && currentWeek !== 41 && currentWeek !== 43) {
                 cell.classList.add('editable-cell');
             }
         }
@@ -927,8 +938,8 @@
                 renderSchedule();
                 updateWeekDisplay();
                 
-                // Auto-lock Week 41 when navigating to it
-                if (currentWeek === 41) {
+                // Auto-lock Week 41 and 43 when navigating to them
+                if (currentWeek === 41 || currentWeek === 43) {
                     isRosterLocked = true;
                 } else {
                     isRosterLocked = false;
@@ -981,8 +992,8 @@
 
         // Admin Functions
         function lockRoster() {
-            if (currentWeek === 41) {
-                alert('Week 41 is permanently locked for historical reference.');
+            if (currentWeek === 41 || currentWeek === 43) {
+                alert(`Week ${currentWeek} is permanently locked for reference.`);
                 return;
             }
             isRosterLocked = true;
@@ -992,8 +1003,8 @@
         }
 
         function unlockRoster() {
-            if (currentWeek === 41) {
-                alert('Week 41 is permanently locked for historical reference.');
+            if (currentWeek === 41 || currentWeek === 43) {
+                alert(`Week ${currentWeek} is permanently locked for reference.`);
                 return;
             }
             isRosterLocked = false;
