@@ -518,7 +518,7 @@
             
             <div id="errorMessage" class="error-message hidden"></div>
             
-            <button class="login-btn" onclick="login()"></button>
+            <button class="login-btn" onclick="login()">Login</button>
         </div>
         
         <div class="demo-note">
@@ -556,8 +556,8 @@
             <div class="week-nav">
                 <button class="btn" onclick="changeWeek(-1)">&lt; Previous</button>
                 <div>
-                    <div class="week-display" id="weekDisplay">Week 43, 2025</div>
-                    <div class="date-range" id="dateRange">20th Oct - 26th Oct 2025</div>
+                    <div class="week-display" id="weekDisplay">Week 44, 2025</div>
+                    <div class="date-range" id="dateRange">27th Oct - 2nd Nov 2025</div>
                 </div>
                 <button class="btn" onclick="changeWeek(1)">Next &gt;</button>
             </div>
@@ -575,13 +575,13 @@
             <thead>
                 <tr>
                     <th>Name</th>
-                    <th>Monday<br><span id="mondayDate">20th Oct</span></th>
-                    <th>Tuesday<br><span id="tuesdayDate">21st Oct</span></th>
-                    <th>Wednesday<br><span id="wednesdayDate">22nd Oct</span></th>
-                    <th>Thursday<br><span id="thursdayDate">23rd Oct</span></th>
-                    <th>Friday<br><span id="fridayDate">24th Oct</span></th>
-                    <th>Saturday<br><span id="saturdayDate">25th Oct</span></th>
-                    <th>Sunday<br><span id="sundayDate">26th Oct</span></th>
+                    <th>Monday<br><span id="mondayDate">27th Oct</span></th>
+                    <th>Tuesday<br><span id="tuesdayDate">28th Oct</span></th>
+                    <th>Wednesday<br><span id="wednesdayDate">29th Oct</span></th>
+                    <th>Thursday<br><span id="thursdayDate">30th Oct</span></th>
+                    <th>Friday<br><span id="fridayDate">31st Oct</span></th>
+                    <th>Saturday<br><span id="saturdayDate">1st Nov</span></th>
+                    <th>Sunday<br><span id="sundayDate">2nd Nov</span></th>
                 </tr>
             </thead>
             <tbody id="scheduleBody">
@@ -777,8 +777,18 @@
                 scheduleData: preLoadedWeek43Data
             };
             
-            // Generate weeks 44-52 with empty schedules
-            for (let week = 44; week <= 52; week++) {
+            // Week 44 (current week starting October 27th) - PRE-LOADED AND LOCKED
+            configs[44] = {
+                startDate: '2025-10-27',
+                endDate: '2025-11-02',
+                displayDate: '27th Oct - 2nd Nov 2025',
+                teamUpdates: 'Emma is on long-term leave until February 2026',
+                activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'],
+                scheduleData: preLoadedWeek44Data
+            };
+            
+            // Generate weeks 45-52 with empty schedules
+            for (let week = 45; week <= 52; week++) {
                 configs[week] = {
                     startDate: getWeekStartDate(week).toISOString().split('T')[0],
                     endDate: new Date(getWeekStartDate(week).getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -797,9 +807,9 @@
         const regions = ['Rift', 'Central', 'D2', 'D3', 'Others'];
         const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         let currentUser = '';
-        let currentWeek = 43; // Start with Week 43
+        let currentWeek = 44; // Start with Week 44 instead of 43
         let currentYear = 2025;
-        let isRosterLocked = true; // Week 43 is pre-loaded and locked by default
+        let isRosterLocked = true; // Week 44 is pre-loaded and locked by default
         let isAdmin = false;
 
         function initializePage() {
@@ -847,13 +857,15 @@
 
         function updateLockedState() {
             const lockedBanner = document.getElementById('lockedBanner');
-            // Week 41 and 43 are always locked, other weeks can be edited by admin
-            if (isRosterLocked || currentWeek === 41 || currentWeek === 43) {
+            // Week 41, 43, and 44 are always locked, other weeks can be edited by admin
+            if (isRosterLocked || currentWeek === 41 || currentWeek === 43 || currentWeek === 44) {
                 lockedBanner.classList.remove('hidden');
                 if (currentWeek === 41) {
                     lockedBanner.textContent = '🔒 Week 41 Roster Locked - Historical View Only';
                 } else if (currentWeek === 43) {
                     lockedBanner.textContent = '🔒 Week 43 Roster Locked - View Only Mode';
+                } else if (currentWeek === 44) {
+                    lockedBanner.textContent = '🔒 Week 44 Roster Locked - View Only Mode';
                 } else {
                     lockedBanner.textContent = '🔒 Roster Locked - View Only Mode';
                 }
@@ -868,8 +880,8 @@
         function updateCellEditability() {
             const cells = document.querySelectorAll('.schedule-table td:not(.user-cell)');
             cells.forEach(cell => {
-                // Week 41 and 43 are always locked, other weeks can be edited by admin when unlocked
-                if (isRosterLocked || !isAdmin || currentWeek === 41 || currentWeek === 43) {
+                // Week 41, 43, and 44 are always locked, other weeks can be edited by admin when unlocked
+                if (isRosterLocked || !isAdmin || currentWeek === 41 || currentWeek === 43 || currentWeek === 44) {
                     cell.classList.remove('editable-cell');
                     cell.onclick = null;
                 } else {
@@ -881,8 +893,8 @@
 
         // === Simple Click-to-Cycle Editing ===
         function handleCellClick(event) {
-            // Week 41 and 43 are always locked
-            if (currentWeek === 41 || currentWeek === 43) {
+            // Week 41, 43, and 44 are always locked
+            if (currentWeek === 41 || currentWeek === 43 || currentWeek === 44) {
                 alert(`Week ${currentWeek} is locked for reference.`);
                 return;
             }
@@ -932,7 +944,7 @@
             }
             
             // Keep it editable if admin and unlocked
-            if (isAdmin && !isRosterLocked && currentWeek !== 41 && currentWeek !== 43) {
+            if (isAdmin && !isRosterLocked && currentWeek !== 41 && currentWeek !== 43 && currentWeek !== 44) {
                 cell.classList.add('editable-cell');
             }
         }
@@ -947,8 +959,8 @@
                 renderSchedule();
                 updateWeekDisplay();
                 
-                // Auto-lock Week 41 and 43 when navigating to them
-                if (currentWeek === 41 || currentWeek === 43) {
+                // Auto-lock Week 41, 43, and 44 when navigating to them
+                if (currentWeek === 41 || currentWeek === 43 || currentWeek === 44) {
                     isRosterLocked = true;
                 } else {
                     isRosterLocked = false;
@@ -1001,7 +1013,7 @@
 
         // Admin Functions
         function lockRoster() {
-            if (currentWeek === 41 || currentWeek === 43) {
+            if (currentWeek === 41 || currentWeek === 43 || currentWeek === 44) {
                 alert(`Week ${currentWeek} is permanently locked for reference.`);
                 return;
             }
@@ -1012,7 +1024,7 @@
         }
 
         function unlockRoster() {
-            if (currentWeek === 41 || currentWeek === 43) {
+            if (currentWeek === 41 || currentWeek === 43 || currentWeek === 44) {
                 alert(`Week ${currentWeek} is permanently locked for reference.`);
                 return;
             }
