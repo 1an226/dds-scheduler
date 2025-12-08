@@ -6,13 +6,663 @@
     <title>DDS Ordering Desk Scheduler</title>
     <style>
         /* [KEEP ALL YOUR EXISTING CSS STYLES - NO CHANGES] */
-        /* ... All CSS styles remain exactly the same ... */
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #34495e;
+            --rift: #e74c3c;
+            --central: #3498db;
+            --d2: #2ecc71;
+            --d3: #f39c12;
+            --others: #9b59b6;
+            --off: #95a5a6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .user-info {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-align: right;
+            margin-top: 10px;
+        }
+        
+        .nav-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .week-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+        }
+        
+        .analytics-btn {
+            background-color: var(--success);
+        }
+        
+        .logout-btn {
+            background-color: var(--danger);
+        }
+
+        .standing-orders-btn {
+            background-color: #9b59b6;
+        }
+
+        .summary-btn {
+            background-color: #e67e22;
+        }
+
+        .patterns-btn {
+            background-color: #16a085;
+        }
+
+        .leave-tracker-btn {
+            background-color: #8e44ad;
+        }
+        
+        .week-display {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        /* Admin Controls */
+        .admin-controls {
+            background-color: #e8f6f3;
+            border-left: 4px solid var(--success);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .admin-controls h3 {
+            color: var(--success);
+            margin-bottom: 10px;
+        }
+
+        /* Schedule Table */
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .schedule-table th {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        
+        .schedule-table td {
+            padding: 15px;
+            border: 1px solid #ddd;
+            text-align: center;
+            position: relative;
+        }
+        
+        .user-cell {
+            font-weight: bold;
+            background: #f8f9fa;
+        }
+        
+        .current-user {
+            background-color: #e8f4fc;
+        }
+        
+        /* Shift Colors */
+        .shift-rift { background-color: var(--rift); color: white; font-weight: bold; }
+        .shift-central { background-color: var(--central); color: white; font-weight: bold; }
+        .shift-d2 { background-color: var(--d2); color: white; font-weight: bold; }
+        .shift-d3 { background-color: var(--d3); color: white; font-weight: bold; }
+        .shift-others { background-color: var(--others); color: white; font-weight: bold; }
+        .shift-off { background-color: var(--off); color: white; font-weight: bold; }
+        .shift-leave { background-color: #fff9e6; color: var(--warning); font-weight: bold; }
+        .shift-empty { background-color: #f8f9fa; color: #666; font-style: italic; }
+        
+        .on-leave {
+            color: #95a5a6;
+            font-style: italic;
+        }
+        
+        .team-updates {
+            background-color: #fff9e6;
+            border-left: 4px solid var(--warning);
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        /* Login Styles */
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .login-btn {
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+        }
+        
+        .demo-note {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .error-message {
+            color: var(--danger);
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        /* Analytics Modal */
+        .analytics-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .analytics-modal.active {
+            display: flex;
+        }
+        
+        .analytics-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .close-btn:hover {
+            color: var(--danger);
+        }
+        
+        .metric {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid var(--secondary);
+        }
+        
+        .metric-label {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .metric-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--secondary);
+        }
+
+        .locked-banner {
+            background-color: var(--warning);
+            color: white;
+            padding: 10px;
+            text-align: center;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .date-range {
+            font-size: 16px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Standing Orders Modal */
+        .standing-orders-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .standing-orders-modal.active {
+            display: flex;
+        }
+        
+        .standing-orders-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .order-item {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #9b59b6;
+        }
+        
+        .order-title {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .order-details {
+            color: #555;
+            line-height: 1.5;
+        }
+
+        /* New Analytics Styles */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+            border-top: 4px solid var(--secondary);
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .coverage-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .coverage-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            border-left: 4px solid var(--success);
+        }
+        
+        .pattern-item {
+            background: #f8f9fa;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 4px solid #16a085;
+        }
+        
+        .leave-item {
+            background: #fff9e6;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 4px solid #f39c12;
+        }
+        
+        .region-stats {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        /* Editable Cell Styles */
+        .editable-cell {
+            cursor: pointer !important;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .editable-cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 2px var(--secondary);
+            z-index: 10;
+        }
+
+        .editable-cell:hover::after {
+            content: "✏️";
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 10px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
-    <!-- [KEEP ALL YOUR EXISTING HTML - NO CHANGES] -->
-    <!-- ... All HTML markup remains exactly the same ... -->
-    
+    <!-- Login Page -->
+    <div id="loginPage" class="login-container">
+        <h1>DDS Ordering Desk Scheduler</h1>
+        <div class="subtitle">Please login to continue</div>
+        
+        <div class="login-form">
+            <div class="form-group">
+                <label for="userSelect">Select User:</label>
+                <select id="userSelect">
+                    <option value="">-- Choose User --</option>
+                    <option value="Ian">Ian (Admin)</option>
+                    <option value="Kim">Kim</option>
+                    <option value="Emma">Emma</option>
+                    <option value="Kevo">Kevo</option>
+                    <option value="Wendy">Wendy</option>
+                    <option value="Janet">Janet</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Enter your password">
+            </div>
+            
+            <div id="errorMessage" class="error-message hidden"></div>
+            
+            <button class="login-btn" onclick="login()">Login</button>
+        </div>
+        
+        <div class="demo-note">
+            <strong>Demo Access:</strong> Use default passwords
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" class="container hidden">
+        <header>
+            <h1>DDS Ordering Desk Scheduler</h1>
+            <div class="subtitle">Weekly Duty Roster Management</div>
+            <div class="user-info">
+                <div id="loggedInUser">User</div>
+                <div id="userStatus">Status</div>
+            </div>
+        </header>
+        
+        <!-- Admin Controls (only for Ian) -->
+        <div id="adminControls" class="admin-controls hidden">
+            <h3>Admin Controls</h3>
+            <p>You can lock/unlock the roster and export data</p>
+            <button class="btn btn-success" onclick="lockRoster()">Lock Roster</button>
+            <button class="btn btn-warning" onclick="unlockRoster()">Unlock Roster</button>
+            <button class="btn btn-danger" onclick="downloadJSON()">Export JSON</button>
+            <button class="btn analytics-btn" onclick="showAnalytics()">Team Analytics</button>
+        </div>
+
+        <!-- Locked Banner -->
+        <div id="lockedBanner" class="locked-banner hidden">
+            🔒 Roster Locked - View Only Mode
+        </div>
+        
+        <div class="nav-controls">
+            <div class="week-nav">
+                <button class="btn" onclick="changeWeek(-1)">&lt; Previous</button>
+                <div>
+                    <div class="week-display" id="weekDisplay">Week 44, 2025</div>
+                    <div class="date-range" id="dateRange">27th Oct - 2nd Nov 2025</div>
+                </div>
+                <button class="btn" onclick="changeWeek(1)">Next &gt;</button>
+            </div>
+            <div>
+                <button class="btn summary-btn" onclick="showWeeklySummary()">Weekly Summary</button>
+                <button class="btn patterns-btn" onclick="showShiftPatterns()">Shift Patterns</button>
+                <button class="btn leave-tracker-btn" onclick="showLeaveTracker()">Leave Tracker</button>
+                <button class="btn standing-orders-btn" onclick="showStandingOrders()">Standing Orders</button>
+                <button class="btn analytics-btn" onclick="showAnalytics()" id="userAnalyticsBtn">My Analytics</button>
+                <button class="btn logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+        
+        <table class="schedule-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Monday<br><span id="mondayDate">27th Oct</span></th>
+                    <th>Tuesday<br><span id="tuesdayDate">28th Oct</span></th>
+                    <th>Wednesday<br><span id="wednesdayDate">29th Oct</span></th>
+                    <th>Thursday<br><span id="thursdayDate">30th Oct</span></th>
+                    <th>Friday<br><span id="fridayDate">31st Oct</span></th>
+                    <th>Saturday<br><span id="saturdayDate">1st Nov</span></th>
+                    <th>Sunday<br><span id="sundayDate">2nd Nov</span></th>
+                </tr>
+            </thead>
+            <tbody id="scheduleBody">
+                <!-- Filled by JavaScript -->
+            </tbody>
+        </table>
+        
+        <div class="team-updates">
+            <h3>Team Updates</h3>
+            <p id="teamUpdatesText">Emma is on long-term leave until February 2026</p>
+            <p><strong>TPC - Mostly sunny</strong></p>
+        </div>
+    </div>
+
+    <!-- Analytics Modal -->
+    <div id="analyticsModal" class="analytics-modal">
+        <div class="analytics-content">
+            <button class="close-btn" onclick="hideAnalytics()">&times;</button>
+            <h2 id="analyticsTitle">User Analytics</h2>
+            <div id="analyticsContent">
+                <!-- Analytics content -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Standing Orders Modal -->
+    <div id="standingOrdersModal" class="standing-orders-modal">
+        <div class="standing-orders-content">
+            <button class="close-btn" onclick="hideStandingOrders()">&times;</button>
+            <h2>Daily Standing Orders</h2>
+            <div id="standingOrdersContent">
+                <div class="order-item">
+                    <div class="order-title">Kamcan</div>
+                    <div class="order-details">8CT 8 pieces, 1.5CT 1 piece</div>
+                </div>
+                <div class="order-item">
+                    <div class="order-title">Coast Paradise</div>
+                    <div class="order-details">8CT 10 pieces, 8Nutri 2 pieces and 1.5CT 3 pieces</div>
+                </div>
+                <div class="order-item">
+                    <div class="order-title">Kilimall</div>
+                    <div class="order-details">4CT 65 pieces, 4Nutri 13 pieces</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Summary Modal -->
+    <div id="weeklySummaryModal" class="analytics-modal">
+        <div class="analytics-content">
+            <button class="close-btn" onclick="hideWeeklySummary()">&times;</button>
+            <h2>Weekly Summary Dashboard</h2>
+            <div id="weeklySummaryContent">
+                <!-- Weekly summary content -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Shift Patterns Modal -->
+    <div id="shiftPatternsModal" class="analytics-modal">
+        <div class="analytics-content">
+            <button class="close-btn" onclick="hideShiftPatterns()">&times;</button>
+            <h2>Shift Pattern Analytics</h2>
+            <div id="shiftPatternsContent">
+                <!-- Shift patterns content -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Leave Tracker Modal -->
+    <div id="leaveTrackerModal" class="analytics-modal">
+        <div class="analytics-content">
+            <button class="close-btn" onclick="hideLeaveTracker()">&times;</button>
+            <h2>Leave & Absence Tracker</h2>
+            <div id="leaveTrackerContent">
+                <!-- Leave tracker content -->
+            </div>
+        </div>
+    </div>
+
     <script>
         // User credentials - NO CHANGES
         const userCredentials = {
@@ -24,50 +674,29 @@
             'Janet': 'Friday'
         };
 
-        // Function to get the Monday of a given week
-        function getMondayOfWeek(date) {
+        // SIMPLIFIED: Get Monday of current week
+        function getMonday(date) {
             const day = date.getDay();
-            const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Adjust Sunday
+            const diff = date.getDate() - day + (day === 0 ? -6 : 1);
             return new Date(date.setDate(diff));
         }
 
-        // Function to get week number from date (ISO week)
-        function getWeekNumber(date) {
-            const target = new Date(date.valueOf());
-            const dayNr = (date.getDay() + 6) % 7;
-            target.setDate(target.getDate() - dayNr + 3);
-            const firstThursday = target.valueOf();
-            target.setMonth(0, 1);
-            if (target.getDay() !== 4) {
-                target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
-            }
-            return 1 + Math.ceil((firstThursday - target) / 604800000);
-        }
-
-        // Function to get date for a specific week and year
-        function getDateOfISOWeek(year, week) {
-            const simple = new Date(year, 0, 1 + (week - 1) * 7);
-            const dow = simple.getDay();
-            const ISOweekStart = simple;
-            if (dow <= 4) {
-                ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
-            } else {
-                ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
-            }
-            return ISOweekStart;
-        }
-
-        // Function to format date with ordinal suffix
-        function formatDateWithSuffix(date) {
-            const day = date.getDate();
-            const month = date.toLocaleDateString('en-US', { month: 'short' });
-            const year = date.getFullYear();
+        // SIMPLIFIED: Generate date range display
+        function getDateRangeDisplay(startDate) {
+            const start = new Date(startDate);
+            const end = new Date(start);
+            end.setDate(end.getDate() + 6);
             
-            const suffix = getDaySuffix(day);
-            return `${day}${suffix} ${month} ${year}`;
+            const formatDate = (date) => {
+                const day = date.getDate();
+                const suffix = getDaySuffix(day);
+                const month = date.toLocaleDateString('en-US', { month: 'short' });
+                return `${day}${suffix} ${month}`;
+            };
+            
+            return `${formatDate(start)} - ${formatDate(end)} ${start.getFullYear()}`;
         }
 
-        // Function to get day suffix
         function getDaySuffix(day) {
             if (day > 3 && day < 21) return 'th';
             switch (day % 10) {
@@ -78,85 +707,76 @@
             }
         }
 
-        // Generate week configs dynamically starting from today
+        // SIMPLIFIED: Generate empty schedule
+        function getEmptySchedule() {
+            return {
+                'Ian': ['', '', '', '', '', '', ''],
+                'Kim': ['', '', '', '', '', '', ''],
+                'Kevo': ['', '', '', '', '', '', ''],
+                'Wendy': ['', '', '', '', '', '', ''],
+                'Janet': ['', '', '', '', '', '', '']
+            };
+        }
+
+        // SIMPLIFIED: Generate week configs
         const generateWeekConfigs = () => {
             const configs = {};
-            const today = new Date(2025, 11, 8); // December 8th, 2025 (0-indexed month: 11 = Dec)
-            const currentWeekStart = getMondayOfWeek(new Date(today));
-            const currentWeekNumber = getWeekNumber(today);
-            const currentYear = today.getFullYear();
             
-            console.log('Today:', today);
-            console.log('Week start:', currentWeekStart);
-            console.log('Week number:', currentWeekNumber);
+            // Set today's date to December 8th, 2025
+            const today = new Date(2025, 11, 8); // Month is 0-indexed, so 11 = December
             
-            // Generate empty schedule template
-            const getEmptySchedule = () => {
-                return {
-                    'Ian': ['', '', '', '', '', '', ''],
-                    'Kim': ['', '', '', '', '', '', ''],
-                    'Kevo': ['', '', '', '', '', '', ''],
-                    'Wendy': ['', '', '', '', '', '', ''],
-                    'Janet': ['', '', '', '', '', '', '']
-                };
-            };
-
-            // WEEK 1: Current week starting Dec 8th (Monday) - EMPTY AND EDITABLE
-            const week1Start = new Date(currentWeekStart);
-            const week1End = new Date(week1Start);
-            week1End.setDate(week1End.getDate() + 6);
+            // Create current week starting from Monday Dec 8th
+            const currentWeekStart = new Date(today);
+            // Force it to be Monday (since Dec 8th IS Monday)
+            currentWeekStart.setDate(8);
+            currentWeekStart.setMonth(11); // December
+            currentWeekStart.setFullYear(2025);
             
-            configs[currentWeekNumber] = {
-                startDate: week1Start.toISOString().split('T')[0],
-                endDate: week1End.toISOString().split('T')[0],
-                displayDate: `${formatDateWithSuffix(week1Start)} - ${formatDateWithSuffix(week1End)}`,
+            console.log("Current week start:", currentWeekStart);
+            
+            // Week 1: Current week (Dec 8th - Dec 14th) - EMPTY AND EDITABLE
+            configs[1] = {
+                startDate: new Date(currentWeekStart).toISOString().split('T')[0],
+                endDate: new Date(currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                displayDate: getDateRangeDisplay(currentWeekStart),
                 teamUpdates: 'This week\'s schedule is being populated',
                 activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'],
                 scheduleData: getEmptySchedule()
             };
 
-            // WEEK 2: Next week - EMPTY
-            const week2Start = new Date(week1Start);
+            // Week 2: Next week (Dec 15th - Dec 21st)
+            const week2Start = new Date(currentWeekStart);
             week2Start.setDate(week2Start.getDate() + 7);
-            const week2End = new Date(week2Start);
-            week2End.setDate(week2End.getDate() + 6);
-            
-            configs[currentWeekNumber + 1] = {
-                startDate: week2Start.toISOString().split('T')[0],
-                endDate: week2End.toISOString().split('T')[0],
-                displayDate: `${formatDateWithSuffix(week2Start)} - ${formatDateWithSuffix(week2End)}`,
+            configs[2] = {
+                startDate: new Date(week2Start).toISOString().split('T')[0],
+                endDate: new Date(week2Start.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                displayDate: getDateRangeDisplay(week2Start),
                 teamUpdates: 'Future week - Schedule pending',
                 activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'],
                 scheduleData: getEmptySchedule()
             };
 
-            // WEEK 3: Week after next - EMPTY
-            const week3Start = new Date(week1Start);
+            // Week 3: Week after next (Dec 22nd - Dec 28th)
+            const week3Start = new Date(currentWeekStart);
             week3Start.setDate(week3Start.getDate() + 14);
-            const week3End = new Date(week3Start);
-            week3End.setDate(week3End.getDate() + 6);
-            
-            configs[currentWeekNumber + 2] = {
-                startDate: week3Start.toISOString().split('T')[0],
-                endDate: week3End.toISOString().split('T')[0],
-                displayDate: `${formatDateWithSuffix(week3Start)} - ${formatDateWithSuffix(week3End)}`,
+            configs[3] = {
+                startDate: new Date(week3Start).toISOString().split('T')[0],
+                endDate: new Date(week3Start.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                displayDate: getDateRangeDisplay(week3Start),
                 teamUpdates: 'Future week - Schedule pending',
                 activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'],
                 scheduleData: getEmptySchedule()
             };
 
-            // Add a few historical placeholder weeks (weeks 41-44) as reference if needed
-            // You can remove these if you want to start completely fresh
-            for (let week = 41; week <= 44; week++) {
-                const histStart = getDateOfISOWeek(2025, week);
-                const histEnd = new Date(histStart);
-                histEnd.setDate(histEnd.getDate() + 6);
-                
+            // Add some placeholder historical weeks
+            for (let week = 4; week <= 6; week++) {
+                const histStart = new Date(currentWeekStart);
+                histStart.setDate(histStart.getDate() - (week * 7));
                 configs[week] = {
-                    startDate: histStart.toISOString().split('T')[0],
-                    endDate: histEnd.toISOString().split('T')[0],
-                    displayDate: `${formatDateWithSuffix(histStart)} - ${formatDateWithSuffix(histEnd)}`,
-                    teamUpdates: 'Historical reference week - View only',
+                    startDate: new Date(histStart).toISOString().split('T')[0],
+                    endDate: new Date(histStart.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    displayDate: getDateRangeDisplay(histStart),
+                    teamUpdates: 'Historical week - View only',
                     activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'],
                     scheduleData: getEmptySchedule(),
                     isHistorical: true
@@ -168,22 +788,20 @@
 
         const weekConfigs = generateWeekConfigs();
         
+        console.log("Week configs generated:", weekConfigs);
+        
         const regions = ['Rift', 'Central', 'D2', 'D3', 'Others'];
         const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         
-        // Get today's week number
-        const today = new Date(2025, 11, 8); // December 8th, 2025
-        const currentWeekNumber = getWeekNumber(today);
-        
         let currentUser = '';
-        let currentWeek = currentWeekNumber; // Start with current week
+        let currentWeek = 1; // Start with Week 1 (current week)
         let currentYear = 2025;
         let isRosterLocked = false; // Current week starts UNLOCKED for editing
         let isAdmin = false;
 
         function initializePage() {
+            console.log("Initializing page...");
             checkLogin();
-            updateLockedState();
         }
 
         function checkLogin() {
@@ -192,6 +810,8 @@
                 currentUser = savedUser;
                 isAdmin = currentUser === 'Ian';
                 showMainApp();
+            } else {
+                showLoginPage();
             }
         }
 
@@ -228,13 +848,11 @@
             const lockedBanner = document.getElementById('lockedBanner');
             const config = weekConfigs[currentWeek];
             
-            // Check if it's a historical week (weeks 41-44)
             if (config && config.isHistorical) {
                 isRosterLocked = true;
                 lockedBanner.classList.remove('hidden');
                 lockedBanner.textContent = `🔒 Week ${currentWeek} (Historical) - View Only Mode`;
             } 
-            // Current week starts unlocked, but can be locked by admin
             else if (isRosterLocked) {
                 lockedBanner.classList.remove('hidden');
                 lockedBanner.textContent = '🔒 Roster Locked - View Only Mode';
@@ -242,7 +860,6 @@
                 lockedBanner.classList.add('hidden');
             }
             
-            // Update cell editability
             updateCellEditability();
         }
 
@@ -279,21 +896,16 @@
             const currentAssignment = cell.textContent;
             const shiftOptions = ['Rift', 'Central', 'D2', 'D3', 'Others', 'OFF', 'Leave'];
             
-            // Find current assignment in options
             let currentIndex = shiftOptions.indexOf(currentAssignment);
             if (currentIndex === -1) {
-                // If current assignment not found, start from beginning
                 currentIndex = -1;
             }
             
-            // Cycle to next option
             const nextIndex = (currentIndex + 1) % shiftOptions.length;
             const nextAssignment = shiftOptions[nextIndex];
             
-            // Update the data model
             weekConfigs[currentWeek].scheduleData[userName][dayIndex] = nextAssignment;
             
-            // Update the cell display
             updateCellAppearance(cell, nextAssignment);
         }
 
@@ -301,7 +913,6 @@
             cell.textContent = assignment;
             cell.className = '';
             
-            // Apply the correct class based on shift type
             if (assignment === 'Rift') cell.className = 'shift-rift';
             else if (assignment === 'Central') cell.className = 'shift-central';
             else if (assignment === 'D2') cell.className = 'shift-d2';
@@ -314,7 +925,6 @@
                 cell.textContent = 'Click to set';
             }
             
-            // Keep it editable if admin and unlocked
             const config = weekConfigs[currentWeek];
             const isHistorical = config && config.isHistorical;
             
@@ -326,24 +936,17 @@
         // Week Navigation
         function changeWeek(weekDelta) {
             const newWeek = currentWeek + weekDelta;
+            const availableWeeks = Object.keys(weekConfigs).map(Number);
             
-            // Find available weeks (keys of weekConfigs)
-            const availableWeeks = Object.keys(weekConfigs).map(Number).sort((a, b) => a - b);
-            const minWeek = Math.min(...availableWeeks);
-            const maxWeek = Math.max(...availableWeeks);
-            
-            if (newWeek >= minWeek && newWeek <= maxWeek) {
+            if (availableWeeks.includes(newWeek)) {
                 currentWeek = newWeek;
-                
-                // Check if it's a historical week
                 const config = weekConfigs[currentWeek];
+                
                 if (config && config.isHistorical) {
                     isRosterLocked = true;
-                } else if (currentWeek === getWeekNumber(new Date(2025, 11, 8))) {
-                    // Current week - check if admin has locked it
-                    // isRosterLocked remains as is (could be true or false)
+                } else if (currentWeek === 1) {
+                    // Current week - check admin lock status
                 } else {
-                    // Future weeks start unlocked
                     isRosterLocked = false;
                 }
                 
@@ -351,14 +954,14 @@
                 updateWeekDisplay();
                 updateLockedState();
             } else {
-                alert(`Week ${newWeek} is not available. Please stay within weeks ${minWeek}-${maxWeek}.`);
+                alert(`Week ${newWeek} is not available.`);
             }
         }
 
         function updateWeekDisplay() {
             const config = weekConfigs[currentWeek];
             if (!config) {
-                console.error(`No config found for week ${currentWeek}`);
+                console.error(`No config for week ${currentWeek}`);
                 return;
             }
             
@@ -366,7 +969,6 @@
             document.getElementById('dateRange').textContent = config.displayDate;
             document.getElementById('teamUpdatesText').textContent = config.teamUpdates;
             
-            // Update date headers
             const startDate = new Date(config.startDate);
             document.getElementById('mondayDate').textContent = formatDate(startDate);
             document.getElementById('tuesdayDate').textContent = formatDate(addDays(startDate, 1));
@@ -400,7 +1002,7 @@
             isRosterLocked = true;
             updateLockedState();
             alert('Roster locked! All users now have view-only access.');
-            downloadJSON(); // Automatically download JSON when locked
+            downloadJSON();
         }
 
         function unlockRoster() {
@@ -416,7 +1018,6 @@
 
         function downloadJSON() {
             const config = weekConfigs[currentWeek];
-            // Create the JSON data structure
             const jsonData = {
                 scheduleData: {},
                 isRosterLocked: isRosterLocked,
@@ -427,7 +1028,6 @@
                 updatedBy: currentUser
             };
 
-            // Convert schedule data to the key-value format
             config.activeUsers.forEach(user => {
                 config.scheduleData[user].forEach((shift, dayIndex) => {
                     const dayName = days[dayIndex];
@@ -435,10 +1035,7 @@
                 });
             });
 
-            // Convert to JSON string
             const jsonString = JSON.stringify(jsonData, null, 2);
-            
-            // Create download link
             const blob = new Blob([jsonString], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -507,7 +1104,6 @@
                 const row = document.createElement('tr');
                 if (user === currentUser) row.classList.add('current-user');
                 
-                // Name cell
                 const nameCell = document.createElement('td');
                 nameCell.className = 'user-cell';
                 if (user === 'Emma') {
@@ -517,15 +1113,12 @@
                 }
                 row.appendChild(nameCell);
                 
-                // Shift cells with PROPER COLORS
                 config.scheduleData[user].forEach((shift, index) => {
                     const cell = document.createElement('td');
                     
-                    // Store user and day index as data attributes
                     cell.setAttribute('data-user', user);
                     cell.setAttribute('data-day', index);
                     
-                    // Set initial appearance
                     updateCellAppearance(cell, shift);
                     
                     row.appendChild(cell);
@@ -538,14 +1131,320 @@
             updateCellEditability();
         }
 
-        // [KEEP ALL YOUR EXISTING ANALYTICS AND MODAL FUNCTIONS - NO CHANGES]
-        // ... All analytics functions remain exactly the same ...
-        
+        // [KEEP ALL YOUR EXISTING ANALYTICS FUNCTIONS - NO CHANGES]
+        function showAnalytics() {
+            const modal = document.getElementById('analyticsModal');
+            const title = document.getElementById('analyticsTitle');
+            const content = document.getElementById('analyticsContent');
+            
+            if (isAdmin) {
+                title.textContent = 'Team Analytics - Admin View';
+                content.innerHTML = generateTeamAnalytics();
+            } else {
+                title.textContent = currentUser + "'s Analytics";
+                content.innerHTML = generateUserAnalytics(currentUser);
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function hideAnalytics() {
+            document.getElementById('analyticsModal').classList.remove('active');
+        }
+
+        function showWeeklySummary() {
+            const modal = document.getElementById('weeklySummaryModal');
+            const content = document.getElementById('weeklySummaryContent');
+            content.innerHTML = generateWeeklySummary();
+            modal.classList.add('active');
+        }
+
+        function hideWeeklySummary() {
+            document.getElementById('weeklySummaryModal').classList.remove('active');
+        }
+
+        function showShiftPatterns() {
+            const modal = document.getElementById('shiftPatternsModal');
+            const content = document.getElementById('shiftPatternsContent');
+            content.innerHTML = generateShiftPatterns();
+            modal.classList.add('active');
+        }
+
+        function hideShiftPatterns() {
+            document.getElementById('shiftPatternsModal').classList.remove('active');
+        }
+
+        function showLeaveTracker() {
+            const modal = document.getElementById('leaveTrackerModal');
+            const content = document.getElementById('leaveTrackerContent');
+            content.innerHTML = generateLeaveTracker();
+            modal.classList.add('active');
+        }
+
+        function hideLeaveTracker() {
+            document.getElementById('leaveTrackerModal').classList.remove('active');
+        }
+
+        function generateWeeklySummary() {
+            const config = weekConfigs[currentWeek];
+            let totalShifts = 0;
+            let regionCounts = { Rift: 0, Central: 0, D2: 0, D3: 0, Others: 0 };
+            let dayCoverage = {};
+            
+            days.forEach(day => dayCoverage[day] = { Rift: 0, Central: 0, D2: 0, D3: 0, Others: 0 });
+            
+            config.activeUsers.forEach(user => {
+                config.scheduleData[user].forEach((shift, dayIndex) => {
+                    if (regions.includes(shift)) {
+                        totalShifts++;
+                        regionCounts[shift]++;
+                        dayCoverage[days[dayIndex]][shift]++;
+                    }
+                });
+            });
+
+            const workingStaff = config.activeUsers.filter(user => 
+                config.scheduleData[user].some(shift => regions.includes(shift))
+            ).length;
+
+            return `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">${totalShifts}</div>
+                        <div class="stat-label">Total Shifts</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${workingStaff}/${config.activeUsers.length}</div>
+                        <div class="stat-label">Active Staff</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${Object.values(regionCounts).reduce((a, b) => a + b, 0)}</div>
+                        <div class="stat-label">Region Coverage</div>
+                    </div>
+                </div>
+
+                <h3>Region Distribution</h3>
+                ${Object.entries(regionCounts).map(([region, count]) => `
+                    <div class="region-stats">
+                        <span>${region}:</span>
+                        <span><strong>${count}</strong> shifts</span>
+                    </div>
+                `).join('')}
+
+                <h3>Daily Coverage</h3>
+                ${Object.entries(dayCoverage).map(([day, coverage]) => `
+                    <div class="coverage-item">
+                        <strong>${day}</strong><br>
+                        ${Object.entries(coverage).map(([region, count]) => 
+                            `${region}: ${count}`).join(' • ')}
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        function generateShiftPatterns() {
+            const config = weekConfigs[currentWeek];
+            let userPatterns = {};
+            
+            config.activeUsers.forEach(user => {
+                const shifts = config.scheduleData[user];
+                const pattern = shifts.join(' → ');
+                const regionFrequency = {};
+                
+                shifts.forEach(shift => {
+                    if (regions.includes(shift)) {
+                        regionFrequency[shift] = (regionFrequency[shift] || 0) + 1;
+                    }
+                });
+                
+                userPatterns[user] = {
+                    pattern: pattern,
+                    frequency: regionFrequency,
+                    totalShifts: Object.values(regionFrequency).reduce((a, b) => a + b, 0)
+                };
+            });
+
+            return `
+                <h3>Individual Shift Patterns</h3>
+                ${Object.entries(userPatterns).map(([user, data]) => `
+                    <div class="pattern-item">
+                        <strong>${user}</strong><br>
+                        <small>Pattern: ${data.pattern}</small><br>
+                        <small>Total shifts: ${data.totalShifts}</small><br>
+                        ${Object.entries(data.frequency).map(([region, count]) => 
+                            `<span style="color: #666">${region}: ${count} </span>`).join('')}
+                    </div>
+                `).join('')}
+
+                <h3>Most Common Regions</h3>
+                ${Object.entries(calculateRegionPreferences()).map(([user, preferences]) => `
+                    <div class="metric">
+                        <div class="metric-label">${user}</div>
+                        <div class="metric-value">${preferences.join(', ')}</div>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        function generateLeaveTracker() {
+            const config = weekConfigs[currentWeek];
+            const leaveData = [];
+            
+            const allUsersToCheck = ['Ian', 'Kim', 'Emma', 'Kevo', 'Wendy', 'Janet'];
+            
+            allUsersToCheck.forEach(user => {
+                let leaveDays = 0;
+                let offDays = 0;
+                
+                if (user === 'Emma') {
+                    leaveData.push({
+                        user: user,
+                        leaveDays: 7,
+                        offDays: 0,
+                        status: 'On long-term leave until Feb 2026'
+                    });
+                } else {
+                    const shifts = config.scheduleData[user] || [];
+                    leaveDays = shifts.filter(shift => shift === 'Leave').length;
+                    offDays = shifts.filter(shift => shift === 'OFF').length;
+                    
+                    if (leaveDays > 0 || user === 'Emma') {
+                        leaveData.push({
+                            user: user,
+                            leaveDays: leaveDays,
+                            offDays: offDays,
+                            status: user === 'Emma' ? 'On long-term leave until Feb 2026' : 
+                                   leaveDays > 0 ? `On leave (${leaveDays} days)` : 'Available'
+                        });
+                    }
+                }
+            });
+
+            return `
+                <h3>Current Leave Status</h3>
+                ${leaveData.map(data => `
+                    <div class="leave-item">
+                        <strong>${data.user}</strong><br>
+                        <span>${data.status}</span><br>
+                        <small>Leave days: ${data.leaveDays} • OFF days: ${data.offDays}</small>
+                    </div>
+                `).join('')}
+
+                <h3>Team Availability</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">${leaveData.filter(d => d.leaveDays > 0).length}</div>
+                        <div class="stat-label">On Leave</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${config.activeUsers.length}</div>
+                        <div class="stat-label">Available Staff</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function calculateRegionPreferences() {
+            const config = weekConfigs[currentWeek];
+            let preferences = {};
+            config.activeUsers.forEach(user => {
+                const regionCount = {};
+                config.scheduleData[user].forEach(shift => {
+                    if (regions.includes(shift)) {
+                        regionCount[shift] = (regionCount[shift] || 0) + 1;
+                    }
+                });
+                preferences[user] = Object.entries(regionCount)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 2)
+                    .map(([region]) => region);
+            });
+            return preferences;
+        }
+
+        function generateUserAnalytics(user) {
+            const config = weekConfigs[currentWeek];
+            const shifts = config.scheduleData[user] || [];
+            const workingDays = shifts.filter(s => !['OFF', 'Leave'].includes(s)).length;
+            const offDays = shifts.filter(s => s === 'OFF').length;
+            const leaveDays = shifts.filter(s => s === 'Leave').length;
+            
+            return `
+                <div class="metric">
+                    <div class="metric-label">Working Days</div>
+                    <div class="metric-value">${workingDays}</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">OFF Days</div>
+                    <div class="metric-value">${offDays}</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Leave Days</div>
+                    <div class="metric-value">${leaveDays}</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Total Scheduled</div>
+                    <div class="metric-value">${workingDays + offDays + leaveDays} days</div>
+                </div>
+            `;
+        }
+
+        function generateTeamAnalytics() {
+            const config = weekConfigs[currentWeek];
+            let html = '';
+            
+            config.activeUsers.forEach(user => {
+                const shifts = config.scheduleData[user];
+                const workingDays = shifts.filter(s => !['OFF', 'Leave'].includes(s)).length;
+                
+                html += `
+                    <div class="metric">
+                        <div class="metric-label">${user}</div>
+                        <div class="metric-value">${workingDays} working days</div>
+                    </div>
+                `;
+            });
+            
+            return html;
+        }
+
+        // Standing Orders Functions
+        function showStandingOrders() {
+            document.getElementById('standingOrdersModal').classList.add('active');
+        }
+
+        function hideStandingOrders() {
+            document.getElementById('standingOrdersModal').classList.remove('active');
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', initializePage);
 
-        // [KEEP ALL YOUR EXISTING EVENT LISTENERS - NO CHANGES]
-        // ... All event listeners remain exactly the same ...
+        // Close modals with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideAnalytics();
+                hideStandingOrders();
+                hideWeeklySummary();
+                hideShiftPatterns();
+                hideLeaveTracker();
+            }
+        });
+
+        // Close modals when clicking outside
+        const modals = ['analyticsModal', 'standingOrdersModal', 'weeklySummaryModal', 'shiftPatternsModal', 'leaveTrackerModal'];
+        modals.forEach(modalId => {
+            document.getElementById(modalId).addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+
+        // Enter key to login
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') login();
+        });
     </script>
 </body>
 </html>
