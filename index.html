@@ -26,7 +26,7 @@
             min-height: 100vh;
         }
         
-        /* Matrix Background */
+        /* Matrix Background - More Faded */
         #matrixCanvas {
             position: fixed;
             top: 0;
@@ -34,6 +34,7 @@
             width: 100%;
             height: 100%;
             z-index: -1;
+            opacity: 0.4; /* More faded */
         }
         
         /* Login Container */
@@ -42,7 +43,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             padding: 40px;
             border: 2px solid var(--secondary);
             box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
@@ -55,16 +56,19 @@
             display: none;
         }
         
-        /* CT226 Text */
+        /* CT226 Text - Top Left */
         .ct226-text {
+            position: fixed;
+            top: 20px;
+            left: 20px;
             font-family: 'Courier New', monospace;
-            font-size: 64px;
+            font-size: 48px;
             color: var(--text);
-            text-shadow: 0 0 10px var(--secondary),
-                         0 0 20px var(--secondary),
-                         0 0 30px var(--secondary);
-            letter-spacing: 5px;
-            margin-bottom: 30px;
+            text-shadow: 0 0 15px var(--secondary),
+                         0 0 30px var(--secondary),
+                         0 0 45px var(--secondary);
+            letter-spacing: 3px;
+            z-index: 1000;
         }
         
         /* Form Styles */
@@ -86,7 +90,7 @@
         .form-group input {
             width: 100%;
             padding: 12px 15px;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.7);
             border: 1px solid var(--secondary);
             color: var(--text);
             font-family: 'Courier New', monospace;
@@ -96,7 +100,7 @@
         .form-group input:focus {
             outline: none;
             border-color: var(--accent);
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
         }
         
         /* Login Button */
@@ -143,49 +147,53 @@
             left: 0;
             width: 100%;
             height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
         }
         
         .main-app.hidden {
             display: none;
         }
         
-        /* Logout Button */
+        /* Logout Button - Top Right */
         .logout-btn {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: transparent;
+            background: rgba(0, 0, 0, 0.8);
             color: var(--secondary);
-            border: 1px solid var(--secondary);
-            padding: 10px 20px;
+            border: 2px solid var(--secondary);
+            padding: 12px 25px;
             font-family: 'Courier New', monospace;
-            font-size: 14px;
+            font-size: 16px;
             cursor: pointer;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
             transition: all 0.3s ease;
             z-index: 1000;
+            font-weight: bold;
         }
         
         .logout-btn:hover {
             background: var(--secondary);
             color: var(--primary);
-            box-shadow: 0 0 10px var(--secondary);
+            box-shadow: 0 0 20px var(--secondary);
         }
         
-        /* Auto-logout Timer */
+        /* Auto-logout Timer - Top Center */
         .logout-timer {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
             color: var(--accent);
             font-family: 'Courier New', monospace;
-            font-size: 12px;
+            font-size: 16px;
             z-index: 1000;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 20px;
+            border: 1px solid var(--accent);
+            border-radius: 3px;
+            font-weight: bold;
         }
         
         /* Warning Banner */
@@ -194,14 +202,16 @@
             top: 0;
             left: 0;
             width: 100%;
-            background: rgba(255, 0, 0, 0.1);
+            background: rgba(255, 0, 0, 0.2);
             color: var(--danger);
-            padding: 10px;
+            padding: 12px;
             text-align: center;
             font-family: 'Courier New', monospace;
-            font-size: 12px;
-            border-bottom: 1px solid var(--danger);
+            font-size: 14px;
+            border-bottom: 2px solid var(--danger);
             z-index: 1000;
+            font-weight: bold;
+            text-shadow: 0 0 5px var(--danger);
         }
         
         .warning-banner.hidden {
@@ -235,14 +245,18 @@
     
     <!-- Main Application -->
     <div id="mainApp" class="main-app hidden">
-        <button class="logout-btn" onclick="logout()">LOGOUT</button>
-        
+        <!-- CT226 Text stays in same position (top left) -->
         <div class="ct226-text">CT226</div>
         
-        <div class="logout-timer" id="logoutTimer"></div>
+        <!-- Logout Button (top right) -->
+        <button class="logout-btn" onclick="logout()">LOGOUT</button>
         
+        <!-- Auto-logout Timer (top center) -->
+        <div class="logout-timer" id="logoutTimer">02:00:00</div>
+        
+        <!-- Warning Banner (only shows when needed) -->
         <div id="warningBanner" class="warning-banner hidden">
-            WARNING: Session will expire in <span id="warningTime">5:00</span>
+            WARNING: Session expires in <span id="warningTime">5:00</span>
         </div>
     </div>
 
@@ -252,14 +266,14 @@
             'Admin': 'OFtFusGT'
         };
 
-        // Session settings
-        const SESSION_TIMEOUT = 9 * 60 * 60 * 1000; // 9 hours in milliseconds
+        // Session settings - 2 hours
+        const SESSION_TIMEOUT = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
         const WARNING_TIME = 5 * 60 * 1000; // 5 minutes warning
         let logoutTimer = null;
         let warningTimer = null;
         let sessionStartTime = null;
 
-        // Matrix Animation
+        // Matrix Animation - More Faded
         const canvas = document.getElementById('matrixCanvas');
         const ctx = canvas.getContext('2d');
 
@@ -271,22 +285,23 @@
         const matrix = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$+-*/=%\"'#&_(),.;:?!\\|{}<>[]^~";
         const matrixArray = matrix.split("");
 
-        const fontSize = 14;
+        const fontSize = 12; // Smaller for more subtle effect
         const columns = canvas.width / fontSize;
 
         // Array of drops - one per column
         const drops = [];
         for (let x = 0; x < columns; x++) {
-            drops[x] = 1;
+            drops[x] = Math.random() * 100;
         }
 
-        // Matrix animation function
+        // Matrix animation function - More subtle
         function drawMatrix() {
-            // Semi-transparent black background for trail effect
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+            // More transparent background for faded trail
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = '#0F0'; // Green text
+            // More muted green
+            ctx.fillStyle = 'rgba(0, 255, 0, 0.6)';
             ctx.font = fontSize + 'px monospace';
 
             // Draw characters
@@ -294,28 +309,52 @@
                 // Random character
                 const text = matrixArray[Math.floor(Math.random() * matrixArray.length)];
                 
-                // Draw character
+                // Draw character with some transparency variation
+                ctx.globalAlpha = Math.random() * 0.7 + 0.3;
                 ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                ctx.globalAlpha = 1;
 
                 // Reset drop to top when it reaches bottom
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.98) {
                     drops[i] = 0;
                 }
 
-                // Move drop down
-                drops[i]++;
+                // Move drop down at varied speeds
+                drops[i] += Math.random() * 0.5 + 0.5;
             }
         }
 
         // Start matrix animation
+        let matrixInterval = null;
         function startMatrix() {
-            setInterval(drawMatrix, 35);
+            if (matrixInterval) clearInterval(matrixInterval);
+            matrixInterval = setInterval(drawMatrix, 50); // Slower animation
+        }
+
+        // Stop matrix animation
+        function stopMatrix() {
+            if (matrixInterval) {
+                clearInterval(matrixInterval);
+                matrixInterval = null;
+            }
+            // Clear canvas
+            ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
         // Handle window resize
         window.addEventListener('resize', function() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+            
+            // Reset drops for new size
+            const newColumns = canvas.width / fontSize;
+            while (drops.length < newColumns) {
+                drops.push(Math.random() * 100);
+            }
+            while (drops.length > newColumns) {
+                drops.pop();
+            }
         });
 
         // Login function
@@ -355,16 +394,22 @@
             document.getElementById('password').value = '';
             
             localStorage.removeItem('ct226_session');
+            localStorage.removeItem('ct226_session_start');
             
             // Hide warning banner
             document.getElementById('warningBanner').classList.add('hidden');
+            
+            // Stop matrix animation
+            stopMatrix();
         }
 
         // Start logout timer
         function startLogoutTimer() {
-            const remainingTime = SESSION_TIMEOUT;
+            // Clear any existing timers
+            clearTimeout(logoutTimer);
+            clearTimeout(warningTimer);
             
-            // Update timer display every minute
+            // Update timer display
             const updateTimerDisplay = () => {
                 const timeLeft = SESSION_TIMEOUT - (Date.now() - sessionStartTime);
                 
@@ -379,10 +424,10 @@
                 const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
                 
                 const display = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                document.getElementById('logoutTimer').textContent = `Auto-logout: ${display}`;
+                document.getElementById('logoutTimer').textContent = `AUTO-LOGOUT: ${display}`;
                 
                 // Show warning when 5 minutes left
-                if (timeLeft <= WARNING_TIME && !document.getElementById('warningBanner').classList.contains('active')) {
+                if (timeLeft <= WARNING_TIME) {
                     showWarning(timeLeft);
                 }
             };
@@ -401,7 +446,10 @@
             
             // Set warning timeout
             warningTimer = setTimeout(() => {
-                showWarning(WARNING_TIME);
+                const timeLeft = SESSION_TIMEOUT - (Date.now() - sessionStartTime);
+                if (timeLeft <= WARNING_TIME) {
+                    showWarning(timeLeft);
+                }
             }, SESSION_TIMEOUT - WARNING_TIME);
         }
 
@@ -434,10 +482,11 @@
         // Check for existing session on load
         function checkSession() {
             const hasSession = localStorage.getItem('ct226_session');
+            const sessionStart = localStorage.getItem('ct226_session_start');
             
-            if (hasSession === 'active') {
-                // Check if session is still valid (within 9 hours)
-                const sessionAge = Date.now() - (parseInt(localStorage.getItem('ct226_session_start')) || 0);
+            if (hasSession === 'active' && sessionStart) {
+                // Check if session is still valid (within 2 hours)
+                const sessionAge = Date.now() - parseInt(sessionStart);
                 
                 if (sessionAge < SESSION_TIMEOUT) {
                     // Resume session
@@ -457,11 +506,6 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            // Store session start time in localStorage for persistence
-            if (sessionStartTime) {
-                localStorage.setItem('ct226_session_start', sessionStartTime.toString());
-            }
-            
             checkSession();
             
             // Enter key to login
@@ -475,19 +519,10 @@
             window.addEventListener('resize', function() {
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
-                
-                // Reset drops array
-                const newColumns = canvas.width / fontSize;
-                while (drops.length < newColumns) {
-                    drops.push(1);
-                }
-                while (drops.length > newColumns) {
-                    drops.pop();
-                }
             });
         });
 
-        // Auto-save session time
+        // Auto-save session time when leaving
         window.addEventListener('beforeunload', function() {
             if (sessionStartTime) {
                 localStorage.setItem('ct226_session_start', sessionStartTime.toString());
