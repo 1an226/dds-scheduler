@@ -34,7 +34,7 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            opacity: 0.4; /* More faded */
+            opacity: 0.4;
         }
         
         /* Login Container */
@@ -56,7 +56,19 @@
             display: none;
         }
         
-        /* CT226 Text - Top Left */
+        /* CT226 Text - Centered in login container */
+        .login-ct226 {
+            font-family: 'Courier New', monospace;
+            font-size: 48px;
+            color: var(--text);
+            text-shadow: 0 0 15px var(--secondary),
+                         0 0 30px var(--secondary),
+                         0 0 45px var(--secondary);
+            letter-spacing: 3px;
+            margin-bottom: 30px;
+        }
+        
+        /* CT226 Text - Main app (top left) */
         .ct226-text {
             position: fixed;
             top: 20px;
@@ -140,7 +152,7 @@
             display: none;
         }
         
-        /* Main App - CT226 Display */
+        /* Main App */
         .main-app {
             position: fixed;
             top: 0;
@@ -177,46 +189,6 @@
             color: var(--primary);
             box-shadow: 0 0 20px var(--secondary);
         }
-        
-        /* Auto-logout Timer - Top Center */
-        .logout-timer {
-            position: fixed;
-            top: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: var(--accent);
-            font-family: 'Courier New', monospace;
-            font-size: 16px;
-            z-index: 1000;
-            text-align: center;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 8px 20px;
-            border: 1px solid var(--accent);
-            border-radius: 3px;
-            font-weight: bold;
-        }
-        
-        /* Warning Banner */
-        .warning-banner {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(255, 0, 0, 0.2);
-            color: var(--danger);
-            padding: 12px;
-            text-align: center;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            border-bottom: 2px solid var(--danger);
-            z-index: 1000;
-            font-weight: bold;
-            text-shadow: 0 0 5px var(--danger);
-        }
-        
-        .warning-banner.hidden {
-            display: none;
-        }
     </style>
 </head>
 <body>
@@ -225,7 +197,8 @@
     
     <!-- Login Page -->
     <div id="loginPage" class="login-container">
-        <div class="ct226-text">CT226</div>
+        <!-- CT226 inside login container - won't overlap -->
+        <div class="login-ct226">CT226</div>
         
         <div class="login-form">
             <div class="form-group">
@@ -245,19 +218,11 @@
     
     <!-- Main Application -->
     <div id="mainApp" class="main-app hidden">
-        <!-- CT226 Text stays in same position (top left) -->
+        <!-- CT226 Text (top left) -->
         <div class="ct226-text">CT226</div>
         
         <!-- Logout Button (top right) -->
         <button class="logout-btn" onclick="logout()">LOGOUT</button>
-        
-        <!-- Auto-logout Timer (top center) -->
-        <div class="logout-timer" id="logoutTimer">02:00:00</div>
-        
-        <!-- Warning Banner (only shows when needed) -->
-        <div id="warningBanner" class="warning-banner hidden">
-            WARNING: Session expires in <span id="warningTime">5:00</span>
-        </div>
     </div>
 
     <script>
@@ -265,13 +230,6 @@
         const SYSTEM_CREDENTIALS = {
             'Admin': 'OFtFusGT'
         };
-
-        // Session settings - 2 hours
-        const SESSION_TIMEOUT = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
-        const WARNING_TIME = 5 * 60 * 1000; // 5 minutes warning
-        let logoutTimer = null;
-        let warningTimer = null;
-        let sessionStartTime = null;
 
         // Matrix Animation - More Faded
         const canvas = document.getElementById('matrixCanvas');
@@ -285,7 +243,7 @@
         const matrix = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$+-*/=%\"'#&_(),.;:?!\\|{}<>[]^~";
         const matrixArray = matrix.split("");
 
-        const fontSize = 12; // Smaller for more subtle effect
+        const fontSize = 12;
         const columns = canvas.width / fontSize;
 
         // Array of drops - one per column
@@ -328,7 +286,7 @@
         let matrixInterval = null;
         function startMatrix() {
             if (matrixInterval) clearInterval(matrixInterval);
-            matrixInterval = setInterval(drawMatrix, 50); // Slower animation
+            matrixInterval = setInterval(drawMatrix, 50);
         }
 
         // Stop matrix animation
@@ -372,10 +330,6 @@
                 
                 // Store session
                 localStorage.setItem('ct226_session', 'active');
-                sessionStartTime = Date.now();
-                
-                // Start logout timer
-                startLogoutTimer();
                 
                 // Start matrix animation
                 startMatrix();
@@ -386,121 +340,25 @@
 
         // Logout function
         function logout() {
-            clearTimeout(logoutTimer);
-            clearTimeout(warningTimer);
-            
             document.getElementById('mainApp').classList.add('hidden');
             document.getElementById('loginPage').classList.remove('hidden');
             document.getElementById('password').value = '';
             
             localStorage.removeItem('ct226_session');
-            localStorage.removeItem('ct226_session_start');
-            
-            // Hide warning banner
-            document.getElementById('warningBanner').classList.add('hidden');
             
             // Stop matrix animation
             stopMatrix();
         }
 
-        // Start logout timer
-        function startLogoutTimer() {
-            // Clear any existing timers
-            clearTimeout(logoutTimer);
-            clearTimeout(warningTimer);
-            
-            // Update timer display
-            const updateTimerDisplay = () => {
-                const timeLeft = SESSION_TIMEOUT - (Date.now() - sessionStartTime);
-                
-                if (timeLeft <= 0) {
-                    logout();
-                    return;
-                }
-                
-                // Format time as HH:MM:SS
-                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-                
-                const display = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                document.getElementById('logoutTimer').textContent = `AUTO-LOGOUT: ${display}`;
-                
-                // Show warning when 5 minutes left
-                if (timeLeft <= WARNING_TIME) {
-                    showWarning(timeLeft);
-                }
-            };
-            
-            // Initial update
-            updateTimerDisplay();
-            
-            // Update every second
-            const timerInterval = setInterval(updateTimerDisplay, 1000);
-            
-            // Set actual logout timeout
-            logoutTimer = setTimeout(() => {
-                clearInterval(timerInterval);
-                logout();
-            }, SESSION_TIMEOUT);
-            
-            // Set warning timeout
-            warningTimer = setTimeout(() => {
-                const timeLeft = SESSION_TIMEOUT - (Date.now() - sessionStartTime);
-                if (timeLeft <= WARNING_TIME) {
-                    showWarning(timeLeft);
-                }
-            }, SESSION_TIMEOUT - WARNING_TIME);
-        }
-
-        // Show warning banner
-        function showWarning(timeLeft) {
-            const warningBanner = document.getElementById('warningBanner');
-            const warningTime = document.getElementById('warningTime');
-            
-            warningBanner.classList.remove('hidden');
-            
-            // Update warning time every second
-            const updateWarningTime = () => {
-                const minutes = Math.floor(timeLeft / (1000 * 60));
-                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-                warningTime.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                timeLeft -= 1000;
-                
-                if (timeLeft <= 0) {
-                    clearInterval(warningInterval);
-                }
-            };
-            
-            // Initial update
-            updateWarningTime();
-            
-            // Update every second
-            const warningInterval = setInterval(updateWarningTime, 1000);
-        }
-
         // Check for existing session on load
         function checkSession() {
             const hasSession = localStorage.getItem('ct226_session');
-            const sessionStart = localStorage.getItem('ct226_session_start');
             
-            if (hasSession === 'active' && sessionStart) {
-                // Check if session is still valid (within 2 hours)
-                const sessionAge = Date.now() - parseInt(sessionStart);
-                
-                if (sessionAge < SESSION_TIMEOUT) {
-                    // Resume session
-                    document.getElementById('loginPage').classList.add('hidden');
-                    document.getElementById('mainApp').classList.remove('hidden');
-                    
-                    sessionStartTime = Date.now() - sessionAge;
-                    startLogoutTimer();
-                    startMatrix();
-                } else {
-                    // Session expired
-                    localStorage.removeItem('ct226_session');
-                    localStorage.removeItem('ct226_session_start');
-                }
+            if (hasSession === 'active') {
+                // Resume session
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                startMatrix();
             }
         }
 
@@ -520,13 +378,6 @@
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
             });
-        });
-
-        // Auto-save session time when leaving
-        window.addEventListener('beforeunload', function() {
-            if (sessionStartTime) {
-                localStorage.setItem('ct226_session_start', sessionStartTime.toString());
-            }
         });
     </script>
 </body>
