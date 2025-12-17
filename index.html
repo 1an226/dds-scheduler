@@ -3,163 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CT226 System</title>
+    <title>CT226</title>
     <style>
         :root {
             --primary: #000000;
             --secondary: #00ff00;
             --accent: #00ffff;
             --danger: #ff0000;
-            --warning: #ffff00;
-            --success: #00ff00;
-            --dark-bg: #111111;
-            --medium-bg: #222222;
-            --light-bg: #333333;
             --text: #ffffff;
-            --text-dim: #aaaaaa;
         }
         
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Courier New', monospace;
         }
         
         body {
             background-color: var(--primary);
             color: var(--text);
-            line-height: 1.6;
+            overflow: hidden;
             min-height: 100vh;
         }
         
-        .glow-text {
+        /* Matrix Background */
+        #matrixCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        /* Login Container */
+        .login-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 40px;
+            border: 2px solid var(--secondary);
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
+            z-index: 1000;
+            text-align: center;
+            width: 400px;
+        }
+        
+        .login-container.hidden {
+            display: none;
+        }
+        
+        /* CT226 Text */
+        .ct226-text {
+            font-family: 'Courier New', monospace;
+            font-size: 64px;
+            color: var(--text);
             text-shadow: 0 0 10px var(--secondary),
                          0 0 20px var(--secondary),
                          0 0 30px var(--secondary);
-            color: var(--text);
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            background: linear-gradient(135deg, var(--primary), var(--dark-bg));
-            color: var(--text);
-            padding: 30px;
-            border-radius: 0;
+            letter-spacing: 5px;
             margin-bottom: 30px;
-            border-bottom: 2px solid var(--secondary);
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
         }
         
-        h1 {
-            font-size: 48px;
-            margin-bottom: 10px;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-        }
-        
-        .subtitle {
-            font-size: 16px;
-            color: var(--accent);
-            letter-spacing: 2px;
-        }
-        
-        .terminal {
-            background-color: var(--dark-bg);
-            border: 1px solid var(--secondary);
-            border-radius: 5px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
-        }
-        
-        .terminal-header {
-            background-color: var(--medium-bg);
-            padding: 10px;
-            border-bottom: 1px solid var(--secondary);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .terminal-body {
-            padding: 20px;
-            min-height: 200px;
-            font-family: 'Courier New', monospace;
-            line-height: 1.8;
-        }
-        
-        .prompt {
-            color: var(--accent);
-        }
-        
-        .command {
-            color: var(--warning);
-        }
-        
-        .output {
-            color: var(--success);
-        }
-        
-        .error {
-            color: var(--danger);
-        }
-        
-        .btn {
-            background-color: var(--medium-bg);
-            color: var(--text);
-            border: 1px solid var(--secondary);
-            padding: 10px 20px;
-            border-radius: 3px;
-            cursor: pointer;
-            margin: 5px;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .btn:hover {
-            background-color: var(--secondary);
-            color: var(--primary);
-            box-shadow: 0 0 10px var(--secondary);
-        }
-        
-        .btn-danger {
-            border-color: var(--danger);
-        }
-        
-        .btn-danger:hover {
-            background-color: var(--danger);
-            color: var(--text);
-            box-shadow: 0 0 10px var(--danger);
-        }
-        
-        .btn-accent {
-            border-color: var(--accent);
-        }
-        
-        .btn-accent:hover {
-            background-color: var(--accent);
-            color: var(--primary);
-            box-shadow: 0 0 10px var(--accent);
-        }
-        
-        .login-container {
-            max-width: 500px;
-            margin: 100px auto;
-            background: var(--dark-bg);
-            padding: 30px;
-            border-radius: 0;
-            border: 2px solid var(--secondary);
-            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
-            text-align: center;
-        }
-        
+        /* Form Styles */
         .form-group {
             margin-bottom: 25px;
             text-align: left;
@@ -167,8 +75,10 @@
         
         .form-group label {
             display: block;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             color: var(--accent);
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
@@ -176,27 +86,34 @@
         .form-group input {
             width: 100%;
             padding: 12px 15px;
-            background: var(--primary);
+            background: rgba(0, 0, 0, 0.5);
             border: 1px solid var(--secondary);
             color: var(--text);
-            border-radius: 0;
-            font-size: 16px;
             font-family: 'Courier New', monospace;
+            font-size: 16px;
         }
         
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+        
+        /* Login Button */
         .login-btn {
-            background: var(--primary);
+            width: 100%;
+            padding: 15px;
+            background: transparent;
             color: var(--secondary);
             border: 2px solid var(--secondary);
-            padding: 15px 30px;
-            border-radius: 0;
-            cursor: pointer;
+            font-family: 'Courier New', monospace;
             font-size: 18px;
             font-weight: bold;
-            width: 100%;
+            cursor: pointer;
             text-transform: uppercase;
             letter-spacing: 2px;
             transition: all 0.3s ease;
+            margin-top: 10px;
         }
         
         .login-btn:hover {
@@ -205,217 +122,100 @@
             box-shadow: 0 0 20px var(--secondary);
         }
         
-        .system-status {
-            background-color: var(--medium-bg);
-            padding: 20px;
-            margin: 20px 0;
-            border-left: 4px solid var(--secondary);
-        }
-        
-        .status-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-        
-        .status-item {
-            background: var(--primary);
-            padding: 15px;
-            border: 1px solid var(--light-bg);
-            border-radius: 3px;
-        }
-        
-        .status-title {
-            color: var(--accent);
-            font-size: 14px;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-        }
-        
-        .status-value {
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--success);
-        }
-        
-        .status-value.offline {
+        /* Error Message */
+        .error-message {
             color: var(--danger);
-        }
-        
-        .status-value.warning {
-            color: var(--warning);
-        }
-        
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin: 30px 0;
-        }
-        
-        .dashboard-card {
-            background: var(--medium-bg);
-            border: 1px solid var(--light-bg);
-            padding: 20px;
-            border-radius: 3px;
-            transition: all 0.3s ease;
-        }
-        
-        .dashboard-card:hover {
-            border-color: var(--secondary);
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
-        }
-        
-        .card-header {
-            color: var(--accent);
-            font-size: 18px;
-            margin-bottom: 15px;
-            border-bottom: 1px solid var(--light-bg);
-            padding-bottom: 10px;
-            text-transform: uppercase;
-        }
-        
-        .nav-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: var(--medium-bg);
-            padding: 15px 20px;
-            border: 1px solid var(--light-bg);
-            margin-bottom: 20px;
-        }
-        
-        .user-info {
-            background-color: var(--primary);
-            padding: 10px 15px;
-            border: 1px solid var(--secondary);
-            text-align: right;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin-top: 15px;
+            text-align: center;
+            text-shadow: 0 0 5px var(--danger);
         }
         
         .hidden {
             display: none;
         }
         
-        .error-message {
-            color: var(--danger);
-            font-size: 14px;
-            margin-top: 10px;
-            text-align: center;
-            text-shadow: 0 0 5px var(--danger);
-        }
-        
-        .modal {
+        /* Main App - CT226 Display */
+        .main-app {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: none;
+            display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
+        }
+        
+        .main-app.hidden {
+            display: none;
+        }
+        
+        /* Logout Button */
+        .logout-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            color: var(--secondary);
+            border: 1px solid var(--secondary);
+            padding: 10px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
             z-index: 1000;
         }
         
-        .modal.active {
-            display: flex;
+        .logout-btn:hover {
+            background: var(--secondary);
+            color: var(--primary);
+            box-shadow: 0 0 10px var(--secondary);
         }
         
-        .modal-content {
-            background: var(--dark-bg);
-            padding: 30px;
-            border: 2px solid var(--secondary);
-            border-radius: 0;
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            position: relative;
-            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
-        }
-        
-        .close-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: var(--text-dim);
-        }
-        
-        .close-btn:hover {
-            color: var(--danger);
-        }
-        
-        .log-entry {
-            padding: 10px;
-            border-bottom: 1px solid var(--light-bg);
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-        }
-        
-        .log-time {
+        /* Auto-logout Timer */
+        .logout-timer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
             color: var(--accent);
-            margin-right: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            z-index: 1000;
         }
         
-        .log-event {
-            color: var(--text);
-        }
-        
-        .log-warning {
-            color: var(--warning);
-        }
-        
-        .log-error {
-            color: var(--danger);
-        }
-        
-        .log-success {
-            color: var(--success);
-        }
-        
-        .blink {
-            animation: blink 1s infinite;
-        }
-        
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .scan-line {
+        /* Warning Banner */
+        .warning-banner {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            height: 2px;
-            background: linear-gradient(to right, 
-                transparent 0%, 
-                var(--accent) 50%, 
-                transparent 100%);
-            animation: scan 3s linear infinite;
-            pointer-events: none;
-            z-index: 9999;
+            background: rgba(255, 0, 0, 0.1);
+            color: var(--danger);
+            padding: 10px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            border-bottom: 1px solid var(--danger);
+            z-index: 1000;
         }
         
-        @keyframes scan {
-            0% { top: 0; }
-            100% { top: 100%; }
+        .warning-banner.hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <!-- Scan Line Effect -->
-    <div class="scan-line"></div>
+    <!-- Matrix Background -->
+    <canvas id="matrixCanvas"></canvas>
     
     <!-- Login Page -->
     <div id="loginPage" class="login-container">
-        <h1 class="glow-text">CT226</h1>
-        <div class="subtitle">SYSTEM ACCESS TERMINAL</div>
+        <div class="ct226-text">CT226</div>
         
         <div class="login-form">
             <div class="form-group">
@@ -431,157 +231,18 @@
             
             <button class="login-btn" onclick="login()">AUTHENTICATE</button>
         </div>
-        
-        <div class="subtitle" style="margin-top: 20px;">
-            <span class="blink">⚠</span> RESTRICTED ACCESS <span class="blink">⚠</span>
-        </div>
     </div>
-
+    
     <!-- Main Application -->
-    <div id="mainApp" class="container hidden">
-        <header>
-            <h1 class="glow-text">CT226</h1>
-            <div class="subtitle">SYSTEM CONTROL PANEL v2.26</div>
-            <div class="user-info">
-                <div>USER: <span class="glow-text">ADMIN</span></div>
-                <div>STATUS: <span class="blink" style="color: var(--success);">ACTIVE</span></div>
-                <div id="systemTime">TIME: --:--:-- UTC</div>
-            </div>
-        </header>
+    <div id="mainApp" class="main-app hidden">
+        <button class="logout-btn" onclick="logout()">LOGOUT</button>
         
-        <!-- Navigation Controls -->
-        <div class="nav-controls">
-            <div class="terminal-header">
-                <span>COMMAND INTERFACE</span>
-                <span id="connectionStatus" style="color: var(--success);">● CONNECTED</span>
-            </div>
-            <div>
-                <button class="btn" onclick="runSystemDiagnostic()">DIAGNOSTIC</button>
-                <button class="btn btn-accent" onclick="showAccessLogs()">ACCESS LOGS</button>
-                <button class="btn btn-danger" onclick="logout()">LOGOUT</button>
-            </div>
-        </div>
+        <div class="ct226-text">CT226</div>
         
-        <!-- System Status -->
-        <div class="system-status">
-            <h3>SYSTEM STATUS OVERVIEW</h3>
-            <div class="status-grid">
-                <div class="status-item">
-                    <div class="status-title">MAINFRAME</div>
-                    <div class="status-value">OPERATIONAL</div>
-                </div>
-                <div class="status-item">
-                    <div class="status-title">SECURITY LEVEL</div>
-                    <div class="status-value">MAXIMUM</div>
-                </div>
-                <div class="status-item">
-                    <div class="status-title">CONNECTIONS</div>
-                    <div class="status-value">1 ACTIVE</div>
-                </div>
-                <div class="status-item">
-                    <div class="status-title">LAST UPDATE</div>
-                    <div class="status-value" id="lastUpdate">--:--:--</div>
-                </div>
-            </div>
-        </div>
+        <div class="logout-timer" id="logoutTimer"></div>
         
-        <!-- Dashboard -->
-        <div class="dashboard-grid">
-            <div class="dashboard-card">
-                <div class="card-header">SYSTEM CONTROLS</div>
-                <button class="btn" style="width: 100%; margin: 5px 0;" onclick="executeCommand('SCAN')">RUN FULL SCAN</button>
-                <button class="btn" style="width: 100%; margin: 5px 0;" onclick="executeCommand('BACKUP')">INITIATE BACKUP</button>
-                <button class="btn" style="width: 100%; margin: 5px 0;" onclick="executeCommand('ENCRYPT')">ENCRYPT DATA</button>
-            </div>
-            
-            <div class="dashboard-card">
-                <div class="card-header">SYSTEM LOGS</div>
-                <div class="terminal-body">
-                    <div class="log-entry">
-                        <span class="log-time">[12:30:15]</span>
-                        <span class="log-event">User authentication successful</span>
-                    </div>
-                    <div class="log-entry">
-                        <span class="log-time">[12:28:42]</span>
-                        <span class="log-success">System boot completed</span>
-                    </div>
-                    <div class="log-entry">
-                        <span class="log-time">[12:25:10]</span>
-                        <span class="log-event">Security protocols initialized</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="dashboard-card">
-                <div class="card-header">TERMINAL ACCESS</div>
-                <div class="terminal">
-                    <div class="terminal-body" id="terminalOutput">
-                        <div class="prompt">ct226:~$</div>
-                        <div>> System ready for commands</div>
-                        <div>> Type 'help' for available commands</div>
-                        <br>
-                        <div id="commandOutput"></div>
-                    </div>
-                    <div style="display: flex; margin-top: 10px;">
-                        <span class="prompt" style="padding: 5px;">ct226:~$</span>
-                        <input type="text" id="commandInput" style="flex: 1; background: black; border: 1px solid var(--secondary); color: white; padding: 5px; font-family: 'Courier New';" 
-                               placeholder="Enter command..." onkeypress="handleCommand(event)">
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Additional Information -->
-        <div class="terminal" style="margin-top: 30px;">
-            <div class="terminal-header">
-                <span>SYSTEM INFORMATION</span>
-            </div>
-            <div class="terminal-body">
-                <div class="output">CT226 System v2.26</div>
-                <div class="output">Build Date: 2025-12-08</div>
-                <div class="output">Security Level: MAXIMUM</div>
-                <div class="output">Access Protocol: OFtFusGT-256</div>
-                <div class="output">Connection: Secure/Encrypted</div>
-                <div class="output">Last Maintenance: 2025-12-07 23:00:00 UTC</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Access Logs Modal -->
-    <div id="accessLogsModal" class="modal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="hideAccessLogs()">&times;</button>
-            <h2 class="glow-text">ACCESS LOGS</h2>
-            <div id="accessLogsContent" style="margin-top: 20px;">
-                <div class="log-entry">
-                    <span class="log-time">[12:30:15]</span>
-                    <span class="log-success">ADMIN - Login successful</span>
-                </div>
-                <div class="log-entry">
-                    <span class="log-time">[11:45:22]</span>
-                    <span class="log-event">System restart initiated</span>
-                </div>
-                <div class="log-entry">
-                    <span class="log-time">[11:30:00]</span>
-                    <span class="log-event">Daily security scan completed</span>
-                </div>
-                <div class="log-entry">
-                    <span class="log-time">[10:15:33]</span>
-                    <span class="log-warning">Unauthorized access attempt blocked</span>
-                </div>
-                <div class="log-entry">
-                    <span class="log-time">[09:00:00]</span>
-                    <span class="log-event">System backup completed</span>
-                </div>
-                <div class="log-entry">
-                    <span class="log-time">[08:30:15]</span>
-                    <span class="log-success">ADMIN - Login successful</span>
-                </div>
-                <div class="log-entry">
-                    <span class="log-time">[00:30:00]</span>
-                    <span class="log-event">Automated maintenance completed</span>
-                </div>
-            </div>
+        <div id="warningBanner" class="warning-banner hidden">
+            WARNING: Session will expire in <span id="warningTime">5:00</span>
         </div>
     </div>
 
@@ -591,18 +252,73 @@
             'Admin': 'OFtFusGT'
         };
 
-        let currentUser = '';
-        let systemCommands = {
-            'help': 'Available commands: scan, backup, encrypt, status, logs, clear, version',
-            'scan': 'Running full system scan... Scan complete. No threats detected.',
-            'backup': 'Initiating system backup... Backup completed successfully.',
-            'encrypt': 'Encrypting sensitive data... Encryption complete.',
-            'status': 'System Status: All systems operational. Security: MAXIMUM.',
-            'logs': 'Displaying recent access logs...',
-            'clear': 'clear',
-            'version': 'CT226 System v2.26 - Secure Terminal Interface'
-        };
+        // Session settings
+        const SESSION_TIMEOUT = 9 * 60 * 60 * 1000; // 9 hours in milliseconds
+        const WARNING_TIME = 5 * 60 * 1000; // 5 minutes warning
+        let logoutTimer = null;
+        let warningTimer = null;
+        let sessionStartTime = null;
 
+        // Matrix Animation
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas size
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Matrix characters
+        const matrix = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$+-*/=%\"'#&_(),.;:?!\\|{}<>[]^~";
+        const matrixArray = matrix.split("");
+
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+
+        // Array of drops - one per column
+        const drops = [];
+        for (let x = 0; x < columns; x++) {
+            drops[x] = 1;
+        }
+
+        // Matrix animation function
+        function drawMatrix() {
+            // Semi-transparent black background for trail effect
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#0F0'; // Green text
+            ctx.font = fontSize + 'px monospace';
+
+            // Draw characters
+            for (let i = 0; i < drops.length; i++) {
+                // Random character
+                const text = matrixArray[Math.floor(Math.random() * matrixArray.length)];
+                
+                // Draw character
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                // Reset drop to top when it reaches bottom
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+
+                // Move drop down
+                drops[i]++;
+            }
+        }
+
+        // Start matrix animation
+        function startMatrix() {
+            setInterval(drawMatrix, 35);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Login function
         function login() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
@@ -611,151 +327,171 @@
             errorMessage.classList.add('hidden');
 
             if (username === 'Admin' && password === SYSTEM_CREDENTIALS['Admin']) {
-                currentUser = username;
-                localStorage.setItem('currentUser', currentUser);
-                showMainApp();
-                logEvent('Login successful');
+                // Success
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                
+                // Store session
+                localStorage.setItem('ct226_session', 'active');
+                sessionStartTime = Date.now();
+                
+                // Start logout timer
+                startLogoutTimer();
+                
+                // Start matrix animation
+                startMatrix();
             } else {
                 errorMessage.classList.remove('hidden');
-                errorMessage.textContent = 'ACCESS DENIED: Invalid credentials';
-                logEvent('Failed login attempt');
             }
         }
 
-        function showMainApp() {
-            document.getElementById('loginPage').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            updateSystemTime();
-            startClock();
-        }
-
+        // Logout function
         function logout() {
-            localStorage.removeItem('currentUser');
+            clearTimeout(logoutTimer);
+            clearTimeout(warningTimer);
+            
             document.getElementById('mainApp').classList.add('hidden');
             document.getElementById('loginPage').classList.remove('hidden');
             document.getElementById('password').value = '';
-            logEvent('User logged out');
+            
+            localStorage.removeItem('ct226_session');
+            
+            // Hide warning banner
+            document.getElementById('warningBanner').classList.add('hidden');
         }
 
-        function updateSystemTime() {
-            const now = new Date();
-            const timeString = now.toISOString().substr(11, 8);
-            document.getElementById('systemTime').textContent = `TIME: ${timeString} UTC`;
-            document.getElementById('lastUpdate').textContent = timeString;
-        }
-
-        function startClock() {
-            setInterval(updateSystemTime, 1000);
-        }
-
-        function handleCommand(event) {
-            if (event.key === 'Enter') {
-                const input = document.getElementById('commandInput');
-                const command = input.value.toLowerCase().trim();
-                const output = document.getElementById('commandOutput');
-                const terminal = document.getElementById('terminalOutput');
+        // Start logout timer
+        function startLogoutTimer() {
+            const remainingTime = SESSION_TIMEOUT;
+            
+            // Update timer display every minute
+            const updateTimerDisplay = () => {
+                const timeLeft = SESSION_TIMEOUT - (Date.now() - sessionStartTime);
                 
-                // Add command to output
-                const commandLine = document.createElement('div');
-                commandLine.innerHTML = `<span class="prompt">ct226:~$</span> <span class="command">${command}</span>`;
-                terminal.appendChild(commandLine);
-                
-                // Process command
-                if (command === 'clear') {
-                    output.innerHTML = '';
-                    terminal.innerHTML = '<div class="prompt">ct226:~$</div><div>> System ready for commands</div><div>> Type \'help\' for available commands</div><br><div id="commandOutput"></div>';
-                } else if (systemCommands[command]) {
-                    const response = document.createElement('div');
-                    response.className = 'output';
-                    response.textContent = systemCommands[command];
-                    terminal.appendChild(response);
-                    
-                    // Execute special commands
-                    if (command === 'logs') {
-                        showAccessLogs();
-                    }
-                } else if (command) {
-                    const error = document.createElement('div');
-                    error.className = 'error';
-                    error.textContent = `Command not found: ${command}`;
-                    terminal.appendChild(error);
+                if (timeLeft <= 0) {
+                    logout();
+                    return;
                 }
                 
-                // Clear input and scroll to bottom
-                input.value = '';
-                terminal.scrollTop = terminal.scrollHeight;
+                // Format time as HH:MM:SS
+                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                
+                const display = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                document.getElementById('logoutTimer').textContent = `Auto-logout: ${display}`;
+                
+                // Show warning when 5 minutes left
+                if (timeLeft <= WARNING_TIME && !document.getElementById('warningBanner').classList.contains('active')) {
+                    showWarning(timeLeft);
+                }
+            };
+            
+            // Initial update
+            updateTimerDisplay();
+            
+            // Update every second
+            const timerInterval = setInterval(updateTimerDisplay, 1000);
+            
+            // Set actual logout timeout
+            logoutTimer = setTimeout(() => {
+                clearInterval(timerInterval);
+                logout();
+            }, SESSION_TIMEOUT);
+            
+            // Set warning timeout
+            warningTimer = setTimeout(() => {
+                showWarning(WARNING_TIME);
+            }, SESSION_TIMEOUT - WARNING_TIME);
+        }
+
+        // Show warning banner
+        function showWarning(timeLeft) {
+            const warningBanner = document.getElementById('warningBanner');
+            const warningTime = document.getElementById('warningTime');
+            
+            warningBanner.classList.remove('hidden');
+            
+            // Update warning time every second
+            const updateWarningTime = () => {
+                const minutes = Math.floor(timeLeft / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                warningTime.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                timeLeft -= 1000;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(warningInterval);
+                }
+            };
+            
+            // Initial update
+            updateWarningTime();
+            
+            // Update every second
+            const warningInterval = setInterval(updateWarningTime, 1000);
+        }
+
+        // Check for existing session on load
+        function checkSession() {
+            const hasSession = localStorage.getItem('ct226_session');
+            
+            if (hasSession === 'active') {
+                // Check if session is still valid (within 9 hours)
+                const sessionAge = Date.now() - (parseInt(localStorage.getItem('ct226_session_start')) || 0);
+                
+                if (sessionAge < SESSION_TIMEOUT) {
+                    // Resume session
+                    document.getElementById('loginPage').classList.add('hidden');
+                    document.getElementById('mainApp').classList.remove('hidden');
+                    
+                    sessionStartTime = Date.now() - sessionAge;
+                    startLogoutTimer();
+                    startMatrix();
+                } else {
+                    // Session expired
+                    localStorage.removeItem('ct226_session');
+                    localStorage.removeItem('ct226_session_start');
+                }
             }
-        }
-
-        function executeCommand(cmd) {
-            const input = document.getElementById('commandInput');
-            input.value = cmd;
-            const event = new KeyboardEvent('keypress', {key: 'Enter'});
-            input.dispatchEvent(event);
-        }
-
-        function runSystemDiagnostic() {
-            const terminal = document.getElementById('terminalOutput');
-            
-            const messages = [
-                'Running system diagnostic...',
-                'Checking mainframe status... OK',
-                'Verifying security protocols... OK',
-                'Testing network connectivity... OK',
-                'Scanning for vulnerabilities... NONE FOUND',
-                'Validating encryption keys... VALID',
-                'Checking backup systems... OPERATIONAL',
-                'Testing emergency protocols... PASSED',
-                'System diagnostic completed successfully.'
-            ];
-            
-            messages.forEach((msg, index) => {
-                setTimeout(() => {
-                    const line = document.createElement('div');
-                    line.className = 'output';
-                    line.textContent = `> ${msg}`;
-                    terminal.appendChild(line);
-                    terminal.scrollTop = terminal.scrollHeight;
-                }, index * 500);
-            });
-            
-            logEvent('System diagnostic initiated');
-        }
-
-        function showAccessLogs() {
-            document.getElementById('accessLogsModal').classList.add('active');
-        }
-
-        function hideAccessLogs() {
-            document.getElementById('accessLogsModal').classList.remove('active');
-        }
-
-        function logEvent(event) {
-            const now = new Date();
-            const timeString = now.toISOString().substr(11, 8);
-            console.log(`[${timeString}] ${event}`);
         }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            const savedUser = localStorage.getItem('currentUser');
-            if (savedUser === 'Admin') {
-                showMainApp();
+            // Store session start time in localStorage for persistence
+            if (sessionStartTime) {
+                localStorage.setItem('ct226_session_start', sessionStartTime.toString());
             }
             
-            // Add some visual effects
-            const scanLine = document.querySelector('.scan-line');
-            setInterval(() => {
-                scanLine.style.animation = 'none';
-                setTimeout(() => {
-                    scanLine.style.animation = 'scan 3s linear infinite';
-                }, 10);
-            }, 3000);
+            checkSession();
+            
+            // Enter key to login
+            document.getElementById('password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
+            
+            // Auto-resize matrix on window resize
+            window.addEventListener('resize', function() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                
+                // Reset drops array
+                const newColumns = canvas.width / fontSize;
+                while (drops.length < newColumns) {
+                    drops.push(1);
+                }
+                while (drops.length > newColumns) {
+                    drops.pop();
+                }
+            });
         });
 
-        // Enter key to login
-        document.getElementById('password').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') login();
+        // Auto-save session time
+        window.addEventListener('beforeunload', function() {
+            if (sessionStartTime) {
+                localStorage.setItem('ct226_session_start', sessionStartTime.toString());
+            }
         });
     </script>
 </body>
