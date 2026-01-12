@@ -3,381 +3,1500 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CT226</title>
+    <title>DDS Ordering Desk Scheduler</title>
     <style>
+        /* [KEEP ALL YOUR EXISTING CSS STYLES - NO CHANGES] */
         :root {
-            --primary: #000000;
-            --secondary: #00ff00;
-            --accent: #00ffff;
-            --danger: #ff0000;
-            --text: #ffffff;
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #34495e;
+            --rift: #e74c3c;
+            --central: #3498db;
+            --d2: #2ecc71;
+            --d3: #f39c12;
+            --others: #9b59b6;
+            --off: #95a5a6;
         }
         
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
-            background-color: var(--primary);
-            color: var(--text);
-            overflow: hidden;
-            min-height: 100vh;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
         }
         
-        /* Matrix Background - More Faded */
-        #matrixCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .user-info {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-align: right;
+            margin-top: 10px;
+        }
+        
+        .nav-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .week-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+        }
+        
+        .analytics-btn {
+            background-color: var(--success);
+        }
+        
+        .logout-btn {
+            background-color: var(--danger);
+        }
+
+        .standing-orders-btn {
+            background-color: #9b59b6;
+        }
+
+        .summary-btn {
+            background-color: #e67e22;
+        }
+
+        .patterns-btn {
+            background-color: #16a085;
+        }
+
+        .leave-tracker-btn {
+            background-color: #8e44ad;
+        }
+        
+        .week-display {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        /* Admin Controls */
+        .admin-controls {
+            background-color: #e8f6f3;
+            border-left: 4px solid var(--success);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .admin-controls h3 {
+            color: var(--success);
+            margin-bottom: 10px;
+        }
+
+        /* Schedule Table */
+        .schedule-table {
             width: 100%;
-            height: 100%;
-            z-index: -1;
-            opacity: 0.4;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
-        /* Login Container */
-        .login-container {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.95);
-            padding: 40px;
-            border: 2px solid var(--secondary);
-            box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
-            z-index: 1000;
+        .schedule-table th {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        
+        .schedule-table td {
+            padding: 15px;
+            border: 1px solid #ddd;
             text-align: center;
-            width: 400px;
+            position: relative;
         }
         
-        .login-container.hidden {
-            display: none;
+        .user-cell {
+            font-weight: bold;
+            background: #f8f9fa;
         }
         
-        /* CT226 Text - Centered in login container */
-        .login-ct226 {
-            font-family: 'Courier New', monospace;
-            font-size: 48px;
-            color: var(--text);
-            text-shadow: 0 0 15px var(--secondary),
-                         0 0 30px var(--secondary),
-                         0 0 45px var(--secondary);
-            letter-spacing: 3px;
-            margin-bottom: 30px;
+        .current-user {
+            background-color: #e8f4fc;
         }
         
-        /* CT226 Text - Main app (top left) */
-        .ct226-text {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            font-family: 'Courier New', monospace;
-            font-size: 48px;
-            color: var(--text);
-            text-shadow: 0 0 15px var(--secondary),
-                         0 0 30px var(--secondary),
-                         0 0 45px var(--secondary);
-            letter-spacing: 3px;
-            z-index: 1000;
+        /* Shift Colors */
+        .shift-rift { background-color: var(--rift); color: white; font-weight: bold; }
+        .shift-central { background-color: var(--central); color: white; font-weight: bold; }
+        .shift-d2 { background-color: var(--d2); color: white; font-weight: bold; }
+        .shift-d3 { background-color: var(--d3); color: white; font-weight: bold; }
+        .shift-others { background-color: var(--others); color: white; font-weight: bold; }
+        .shift-off { background-color: var(--off); color: white; font-weight: bold; }
+        .shift-leave { background-color: #fff9e6; color: var(--warning); font-weight: bold; }
+        .shift-empty { background-color: #f8f9fa; color: #666; font-style: italic; }
+        
+        .on-leave {
+            color: #95a5a6;
+            font-style: italic;
         }
         
-        /* Form Styles */
+        .team-updates {
+            background-color: #fff9e6;
+            border-left: 4px solid var(--warning);
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        /* Login Styles */
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             text-align: left;
         }
         
         .form-group label {
             display: block;
             margin-bottom: 8px;
-            color: var(--accent);
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-weight: 600;
         }
         
+        .form-group select,
         .form-group input {
             width: 100%;
             padding: 12px 15px;
-            background: rgba(0, 0, 0, 0.7);
-            border: 1px solid var(--secondary);
-            color: var(--text);
-            font-family: 'Courier New', monospace;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
             font-size: 16px;
         }
         
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-        }
-        
-        /* Login Button */
         .login-btn {
-            width: 100%;
-            padding: 15px;
-            background: transparent;
-            color: var(--secondary);
-            border: 2px solid var(--secondary);
-            font-family: 'Courier New', monospace;
-            font-size: 18px;
-            font-weight: bold;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
             cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            transition: all 0.3s ease;
-            margin-top: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
         }
         
-        .login-btn:hover {
-            background: var(--secondary);
-            color: var(--primary);
-            box-shadow: 0 0 20px var(--secondary);
-        }
-        
-        /* Error Message */
-        .error-message {
-            color: var(--danger);
-            font-family: 'Courier New', monospace;
+        .demo-note {
+            margin-top: 20px;
             font-size: 14px;
-            margin-top: 15px;
-            text-align: center;
-            text-shadow: 0 0 5px var(--danger);
+            color: #7f8c8d;
         }
         
         .hidden {
             display: none;
         }
         
-        /* Main App */
-        .main-app {
+        .error-message {
+            color: var(--danger);
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        /* Analytics Modal */
+        .analytics-modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-        }
-        
-        .main-app.hidden {
+            background: rgba(0,0,0,0.5);
             display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
         }
         
-        /* Logout Button - Top Right */
-        .logout-btn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            color: var(--secondary);
-            border: 2px solid var(--secondary);
-            padding: 12px 25px;
-            font-family: 'Courier New', monospace;
-            font-size: 16px;
+        .analytics-modal.active {
+            display: flex;
+        }
+        
+        .analytics-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
             cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            transition: all 0.3s ease;
-            z-index: 1000;
+            color: #666;
+        }
+        
+        .close-btn:hover {
+            color: var(--danger);
+        }
+        
+        .metric {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid var(--secondary);
+        }
+        
+        .metric-label {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .metric-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--secondary);
+        }
+
+        .locked-banner {
+            background-color: var(--warning);
+            color: white;
+            padding: 10px;
+            text-align: center;
+            border-radius: 5px;
+            margin-bottom: 15px;
             font-weight: bold;
         }
+
+        .date-range {
+            font-size: 16px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Standing Orders Modal */
+        .standing-orders-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
         
-        .logout-btn:hover {
-            background: var(--secondary);
+        .standing-orders-modal.active {
+            display: flex;
+        }
+        
+        .standing-orders-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .order-item {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #9b59b6;
+        }
+        
+        .order-title {
+            font-weight: 600;
             color: var(--primary);
-            box-shadow: 0 0 20px var(--secondary);
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .order-details {
+            color: #555;
+            line-height: 1.5;
+        }
+
+        /* New Analytics Styles */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+            border-top: 4px solid var(--secondary);
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .coverage-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .coverage-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            border-left: 4px solid var(--success);
+        }
+        
+        .pattern-item {
+            background: #f8f9fa;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 4px solid #16a085;
+        }
+        
+        .leave-item {
+            background: #fff9e6;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 4px solid #f39c12;
+        }
+        
+        .region-stats {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        /* Editable Cell Styles */
+        .editable-cell {
+            cursor: pointer !important;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .editable-cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 2px var(--secondary);
+            z-index: 10;
+        }
+
+        .editable-cell:hover::after {
+            content: "✏️";
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 10px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
     </style>
 </head>
 <body>
-    <!-- Matrix Background -->
-    <canvas id="matrixCanvas"></canvas>
-    
     <!-- Login Page -->
     <div id="loginPage" class="login-container">
-        <!-- CT226 inside login container - won't overlap -->
-        <div class="login-ct226">CT226</div>
+        <h1>DDS Ordering Desk Scheduler</h1>
+        <div class="subtitle">Please login to continue</div>
         
         <div class="login-form">
             <div class="form-group">
-                <label for="username">USERNAME</label>
-                <input type="text" id="username" value="Admin" readonly>
+                <label for="userSelect">Select User:</label>
+                <select id="userSelect">
+                    <option value="">-- Choose User --</option>
+                    <option value="Ian">Ian (Admin)</option>
+                    <option value="Kim">Kim</option>
+                    <option value="Emma">Emma</option>
+                    <option value="Kevo">Kevo</option>
+                    <option value="Wendy">Wendy</option>
+                    <option value="Janet">Janet</option>
+                </select>
             </div>
             <div class="form-group">
-                <label for="password">ACCESS CODE</label>
-                <input type="password" id="password" placeholder="ENTER ACCESS CODE" autocomplete="off">
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Enter your password">
             </div>
             
-            <div id="errorMessage" class="error-message hidden">ACCESS DENIED</div>
+            <div id="errorMessage" class="error-message hidden"></div>
             
-            <button class="login-btn" onclick="login()">AUTHENTICATE</button>
+            <button class="login-btn" onclick="login()">Login</button>
+        </div>
+        
+        <div class="demo-note">
+            <strong>Demo Access:</strong> Use default passwords
         </div>
     </div>
-    
+
     <!-- Main Application -->
-    <div id="mainApp" class="main-app hidden">
-        <!-- CT226 Text (top left) -->
-        <div class="ct226-text">CT226</div>
+    <div id="mainApp" class="container hidden">
+        <header>
+            <h1>DDS Ordering Desk Scheduler</h1>
+            <div class="subtitle">Weekly Duty Roster Management</div>
+            <div class="user-info">
+                <div id="loggedInUser">User</div>
+                <div id="userStatus">Status</div>
+            </div>
+        </header>
         
-        <!-- Logout Button (top right) -->
-        <button class="logout-btn" onclick="logout()">LOGOUT</button>
+        <!-- Admin Controls (only for Ian) -->
+        <div id="adminControls" class="admin-controls hidden">
+            <h3>Admin Controls</h3>
+            <p>You can lock/unlock the roster and export data</p>
+            <button class="btn btn-success" onclick="lockRoster()">Lock Roster</button>
+            <button class="btn btn-warning" onclick="unlockRoster()">Unlock Roster</button>
+            <button class="btn btn-danger" onclick="downloadJSON()">Export JSON</button>
+            <button class="btn analytics-btn" onclick="showAnalytics()">Team Analytics</button>
+        </div>
+
+        <!-- Locked Banner -->
+        <div id="lockedBanner" class="locked-banner hidden">
+            🔒 Roster Locked - View Only Mode
+        </div>
+        
+        <div class="nav-controls">
+            <div class="week-nav">
+                <button class="btn" onclick="changeWeek(-1)">&lt; Previous</button>
+                <div>
+                    <div class="week-display" id="weekDisplay">Week 1, 2025</div>
+                    <div class="date-range" id="dateRange">8th Dec - 14th Dec 2025</div>
+                </div>
+                <button class="btn" onclick="changeWeek(1)">Next &gt;</button>
+            </div>
+            <div>
+                <button class="btn summary-btn" onclick="showWeeklySummary()">Weekly Summary</button>
+                <button class="btn patterns-btn" onclick="showShiftPatterns()">Shift Patterns</button>
+                <button class="btn leave-tracker-btn" onclick="showLeaveTracker()">Leave Tracker</button>
+                <button class="btn standing-orders-btn" onclick="showStandingOrders()">Standing Orders</button>
+                <button class="btn analytics-btn" onclick="showAnalytics()" id="userAnalyticsBtn">My Analytics</button>
+                <button class="btn logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+        
+        <table class="schedule-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Monday<br><span id="mondayDate">8th Dec</span></th>
+                    <th>Tuesday<br><span id="tuesdayDate">9th Dec</span></th>
+                    <th>Wednesday<br><span id="wednesdayDate">10th Dec</span></th>
+                    <th>Thursday<br><span id="thursdayDate">11th Dec</span></th>
+                    <th>Friday<br><span id="fridayDate">12th Dec</span></th>
+                    <th>Saturday<br><span id="saturdayDate">13th Dec</span></th>
+                    <th>Sunday<br><span id="sundayDate">14th Dec</span></th>
+                </tr>
+            </thead>
+            <tbody id="scheduleBody">
+                <!-- Filled by JavaScript -->
+            </tbody>
+        </table>
+        
+        <div class="team-updates">
+            <h3>Team Updates</h3>
+            <p id="teamUpdatesText">Current week schedule is locked for viewing. Emma is on long-term leave until February 2026</p>
+            <p><strong>TPC - Mostly sunny</strong></p>
+        </div>
+    </div>
+
+    <!-- Analytics Modal -->
+    <div id="analyticsModal" class="analytics-modal">
+        <div class="analytics-content">
+            <button class="close-btn" onclick="hideAnalytics()">&times;</button>
+            <h2 id="analyticsTitle">User Analytics</h2>
+            <div id="analyticsContent">
+                <!-- Analytics content -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Standing Orders Modal -->
+    <div id="standingOrdersModal" class="standing-orders-modal">
+        <div class="standing-orders-content">
+            <button class="close-btn" onclick="hideStandingOrders()">&times;</button>
+            <h2>Daily Standing Orders</h2>
+            <div id="standingOrdersContent">
+                <div class="order-item">
+                    <div class="order-title">Kamcan</div>
+                    <div class="order-details">8CT 8 pieces, 1.5CT 1 piece</div>
+                </div>
+                <div class="order-item">
+                    <div class="order-title">Coast Paradise</div>
+                    <div class="order-details">8CT 10 pieces, 8Nutri 2 pieces and 1.5CT 3 pieces</div>
+                </div>
+                <div class="order-item">
+                    <div class="order-title">Kilimall</div>
+                    <div class="order-details">4CT 65 pieces, 4Nutri 13 pieces</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Summary Modal -->
+    <div id="weeklySummaryModal" class="analytics-modal">
+        <div class="analytics-content">
+            <button class="close-btn" onclick="hideWeeklySummary()">&times;</button>
+            <h2>Weekly Summary Dashboard</h2>
+            <div id="weeklySummaryContent">
+                <!-- Weekly summary content -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Shift Patterns Modal -->
+    <div id="shiftPatternsModal" class="analytics-modal">
+        <div class="analytics-content">
+            <button class="close-btn" onclick="hideShiftPatterns()">&times;</button>
+            <h2>Shift Pattern Analytics</h2>
+            <div id="shiftPatternsContent">
+                <!-- Shift patterns content -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Leave Tracker Modal -->
+    <div id="leaveTrackerModal" class="analytics-modal">
+        <div class="analytics-content">
+            <button class="close-btn" onclick="hideLeaveTracker()">&times;</button>
+            <h2>Leave & Absence Tracker</h2>
+            <div id="leaveTrackerContent">
+                <!-- Leave tracker content -->
+            </div>
+        </div>
     </div>
 
     <script>
-        // System credentials
-        const SYSTEM_CREDENTIALS = {
-            'Admin': 'OFtFusGT'
+        // User credentials - NO CHANGES
+        const userCredentials = {
+            'Ian': 'OFtFusGT',
+            'Kim': 'Tuesday',
+            'Emma': 'Sunday',
+            'Kevo': 'Thursday',
+            'Wendy': 'Saturday',
+            'Janet': 'Friday'
         };
 
-        // Matrix Animation - More Faded
-        const canvas = document.getElementById('matrixCanvas');
-        const ctx = canvas.getContext('2d');
+        // YOUR JSON DATA
+        const importedWeek1Data = {
+            "scheduleData": {
+                "Ian-Monday": "Rift",
+                "Ian-Tuesday": "D3",
+                "Ian-Wednesday": "OFF",
+                "Ian-Thursday": "Rift",
+                "Ian-Friday": "D2",
+                "Ian-Saturday": "Central",
+                "Ian-Sunday": "Rift",
+                "Kim-Monday": "D2",
+                "Kim-Tuesday": "OFF",
+                "Kim-Wednesday": "Central",
+                "Kim-Thursday": "D3",
+                "Kim-Friday": "Rift",
+                "Kim-Saturday": "D2",
+                "Kim-Sunday": "Others",
+                "Kevo-Monday": "Central",
+                "Kevo-Tuesday": "D2",
+                "Kevo-Wednesday": "Rift",
+                "Kevo-Thursday": "OFF",
+                "Kevo-Friday": "D3",
+                "Kevo-Saturday": "Rift",
+                "Kevo-Sunday": "D2",
+                "Wendy-Monday": "Others",
+                "Wendy-Tuesday": "Central",
+                "Wendy-Wednesday": "D3",
+                "Wendy-Thursday": "D2",
+                "Wendy-Friday": "Central",
+                "Wendy-Saturday": "OFF",
+                "Wendy-Sunday": "D3",
+                "Janet-Monday": "D3",
+                "Janet-Tuesday": "Rift",
+                "Janet-Wednesday": "D2",
+                "Janet-Thursday": "Central",
+                "Janet-Friday": "OFF",
+                "Janet-Saturday": "D3",
+                "Janet-Sunday": "Central"
+            },
+            "isRosterLocked": false,
+            "currentWeek": 1,
+            "currentYear": 2025,
+            "dateRange": "8th Dec - 14th Dec 2025",
+            "lastSavedTime": "2025-12-08T11:29:24.443Z",
+            "updatedBy": "Ian"
+        };
 
-        // Set canvas size
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        // Matrix characters
-        const matrix = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$+-*/=%\"'#&_(),.;:?!\\|{}<>[]^~";
-        const matrixArray = matrix.split("");
-
-        const fontSize = 12;
-        const columns = canvas.width / fontSize;
-
-        // Array of drops - one per column
-        const drops = [];
-        for (let x = 0; x < columns; x++) {
-            drops[x] = Math.random() * 100;
-        }
-
-        // Matrix animation function - More subtle
-        function drawMatrix() {
-            // More transparent background for faded trail
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // More muted green
-            ctx.fillStyle = 'rgba(0, 255, 0, 0.6)';
-            ctx.font = fontSize + 'px monospace';
-
-            // Draw characters
-            for (let i = 0; i < drops.length; i++) {
-                // Random character
-                const text = matrixArray[Math.floor(Math.random() * matrixArray.length)];
-                
-                // Draw character with some transparency variation
-                ctx.globalAlpha = Math.random() * 0.7 + 0.3;
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                ctx.globalAlpha = 1;
-
-                // Reset drop to top when it reaches bottom
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.98) {
-                    drops[i] = 0;
-                }
-
-                // Move drop down at varied speeds
-                drops[i] += Math.random() * 0.5 + 0.5;
-            }
-        }
-
-        // Start matrix animation
-        let matrixInterval = null;
-        function startMatrix() {
-            if (matrixInterval) clearInterval(matrixInterval);
-            matrixInterval = setInterval(drawMatrix, 50);
-        }
-
-        // Stop matrix animation
-        function stopMatrix() {
-            if (matrixInterval) {
-                clearInterval(matrixInterval);
-                matrixInterval = null;
-            }
-            // Clear canvas
-            ctx.fillStyle = 'rgba(0, 0, 0, 1)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+        // Helper function to convert imported data to our format
+        function convertImportedData(importedData) {
+            const scheduleData = {};
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            const users = ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'];
             
-            // Reset drops for new size
-            const newColumns = canvas.width / fontSize;
-            while (drops.length < newColumns) {
-                drops.push(Math.random() * 100);
-            }
-            while (drops.length > newColumns) {
-                drops.pop();
-            }
-        });
+            users.forEach(user => {
+                scheduleData[user] = [];
+                days.forEach(day => {
+                    const key = `${user}-${day}`;
+                    scheduleData[user].push(importedData.scheduleData[key] || '');
+                });
+            });
+            
+            return scheduleData;
+        }
 
-        // Login function
+        // SIMPLIFIED: Generate date range display
+        function getDateRangeDisplay(startDate) {
+            const start = new Date(startDate);
+            const end = new Date(start);
+            end.setDate(end.getDate() + 6);
+            
+            const formatDate = (date) => {
+                const day = date.getDate();
+                const suffix = getDaySuffix(day);
+                const month = date.toLocaleDateString('en-US', { month: 'short' });
+                return `${day}${suffix} ${month}`;
+            };
+            
+            return `${formatDate(start)} - ${formatDate(end)} ${start.getFullYear()}`;
+        }
+
+        function getDaySuffix(day) {
+            if (day > 3 && day < 21) return 'th';
+            switch (day % 10) {
+                case 1: return "st";
+                case 2: return "nd";
+                case 3: return "rd";
+                default: return "th";
+            }
+        }
+
+        // SIMPLIFIED: Generate empty schedule
+        function getEmptySchedule() {
+            return {
+                'Ian': ['', '', '', '', '', '', ''],
+                'Kim': ['', '', '', '', '', '', ''],
+                'Kevo': ['', '', '', '', '', '', ''],
+                'Wendy': ['', '', '', '', '', '', ''],
+                'Janet': ['', '', '', '', '', '', '']
+            };
+        }
+
+        // SIMPLIFIED: Generate week configs
+        const generateWeekConfigs = () => {
+            const configs = {};
+            
+            // Week 1: Current week (Dec 8th - Dec 14th) - PRE-POPULATED WITH YOUR DATA AND LOCKED
+            const currentWeekStart = new Date(2025, 11, 8); // December 8th, 2025
+            
+            configs[1] = {
+                startDate: new Date(currentWeekStart).toISOString().split('T')[0],
+                endDate: new Date(currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                displayDate: importedWeek1Data.dateRange,
+                teamUpdates: 'Current week schedule is locked for viewing. Emma is on long-term leave until February 2026',
+                activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'],
+                scheduleData: convertImportedData(importedWeek1Data),
+                isPrePopulated: true
+            };
+
+            // Week 2: Next week (Dec 15th - Dec 21st) - EMPTY
+            const week2Start = new Date(currentWeekStart);
+            week2Start.setDate(week2Start.getDate() + 7);
+            configs[2] = {
+                startDate: new Date(week2Start).toISOString().split('T')[0],
+                endDate: new Date(week2Start.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                displayDate: getDateRangeDisplay(week2Start),
+                teamUpdates: 'Future week - Schedule pending',
+                activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'],
+                scheduleData: getEmptySchedule()
+            };
+
+            // Week 3: Week after next (Dec 22nd - Dec 28th) - EMPTY
+            const week3Start = new Date(currentWeekStart);
+            week3Start.setDate(week3Start.getDate() + 14);
+            configs[3] = {
+                startDate: new Date(week3Start).toISOString().split('T')[0],
+                endDate: new Date(week3Start.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                displayDate: getDateRangeDisplay(week3Start),
+                teamUpdates: 'Future week - Schedule pending',
+                activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'],
+                scheduleData: getEmptySchedule()
+            };
+
+            // Add some placeholder historical weeks
+            for (let week = 4; week <= 6; week++) {
+                const histStart = new Date(currentWeekStart);
+                histStart.setDate(histStart.getDate() - (week * 7));
+                configs[week] = {
+                    startDate: new Date(histStart).toISOString().split('T')[0],
+                    endDate: new Date(histStart.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    displayDate: getDateRangeDisplay(histStart),
+                    teamUpdates: 'Historical week - View only',
+                    activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'],
+                    scheduleData: getEmptySchedule(),
+                    isHistorical: true
+                };
+            }
+            
+            return configs;
+        };
+
+        const weekConfigs = generateWeekConfigs();
+        
+        const regions = ['Rift', 'Central', 'D2', 'D3', 'Others'];
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        
+        let currentUser = '';
+        let currentWeek = 1; // Start with Week 1 (current week with your data)
+        let currentYear = 2025;
+        let isRosterLocked = true; // Week 1 starts LOCKED for all users (even Ian)
+        let isAdmin = false;
+
+        function initializePage() {
+            checkLogin();
+        }
+
+        function checkLogin() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = savedUser;
+                isAdmin = currentUser === 'Ian';
+                showMainApp();
+            } else {
+                showLoginPage();
+            }
+        }
+
+        function showLoginPage() {
+            document.getElementById('loginPage').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+        }
+
+        function showMainApp() {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            setupUserExperience();
+            renderSchedule();
+            updateLockedState();
+        }
+
+        function setupUserExperience() {
+            document.getElementById('loggedInUser').textContent = 
+                currentUser + (isAdmin ? ' (Admin)' : '');
+            document.getElementById('userStatus').textContent = 
+                currentUser === 'Emma' ? 'on leave until February 2026' : 'viewing roster';
+            
+            // Show admin controls only for Ian
+            if (isAdmin) {
+                document.getElementById('adminControls').classList.remove('hidden');
+                document.getElementById('userAnalyticsBtn').textContent = 'Team Analytics';
+            } else {
+                document.getElementById('adminControls').classList.add('hidden');
+                document.getElementById('userAnalyticsBtn').textContent = 'My Analytics';
+            }
+        }
+
+        function updateLockedState() {
+            const lockedBanner = document.getElementById('lockedBanner');
+            const config = weekConfigs[currentWeek];
+            
+            // Week 1 is always locked for viewing by default (Ian can unlock if needed)
+            if (currentWeek === 1 && isRosterLocked) {
+                lockedBanner.classList.remove('hidden');
+                lockedBanner.textContent = '🔒 Current Week Roster Locked - View Only Mode';
+            }
+            else if (config && config.isHistorical) {
+                lockedBanner.classList.remove('hidden');
+                lockedBanner.textContent = `🔒 Week ${currentWeek} (Historical) - View Only Mode`;
+            } 
+            else if (isRosterLocked) {
+                lockedBanner.classList.remove('hidden');
+                lockedBanner.textContent = '🔒 Roster Locked - View Only Mode';
+            } else {
+                lockedBanner.classList.add('hidden');
+            }
+            
+            updateCellEditability();
+        }
+
+        function updateCellEditability() {
+            const cells = document.querySelectorAll('.schedule-table td:not(.user-cell)');
+            cells.forEach(cell => {
+                const config = weekConfigs[currentWeek];
+                const isHistorical = config && config.isHistorical;
+                
+                // Cells are only editable if: user is admin AND roster is unlocked AND not historical
+                if (isRosterLocked || !isAdmin || isHistorical) {
+                    cell.classList.remove('editable-cell');
+                    cell.onclick = null;
+                } else {
+                    cell.classList.add('editable-cell');
+                    cell.onclick = handleCellClick;
+                }
+            });
+        }
+
+        // === Simple Click-to-Cycle Editing ===
+        function handleCellClick(event) {
+            const config = weekConfigs[currentWeek];
+            if (config && config.isHistorical) {
+                alert(`Week ${currentWeek} is a historical reference week and cannot be edited.`);
+                return;
+            }
+            
+            if (isRosterLocked || !isAdmin) return;
+            
+            const cell = event.target;
+            const userName = cell.dataset.user;
+            const dayIndex = parseInt(cell.dataset.day);
+    
+            const currentAssignment = cell.textContent;
+            const shiftOptions = ['Rift', 'Central', 'D2', 'D3', 'Others', 'OFF', 'Leave'];
+            
+            let currentIndex = shiftOptions.indexOf(currentAssignment);
+            if (currentIndex === -1) {
+                currentIndex = -1;
+            }
+            
+            const nextIndex = (currentIndex + 1) % shiftOptions.length;
+            const nextAssignment = shiftOptions[nextIndex];
+            
+            weekConfigs[currentWeek].scheduleData[userName][dayIndex] = nextAssignment;
+            
+            updateCellAppearance(cell, nextAssignment);
+        }
+
+        function updateCellAppearance(cell, assignment) {
+            cell.textContent = assignment;
+            cell.className = '';
+            
+            if (assignment === 'Rift') cell.className = 'shift-rift';
+            else if (assignment === 'Central') cell.className = 'shift-central';
+            else if (assignment === 'D2') cell.className = 'shift-d2';
+            else if (assignment === 'D3') cell.className = 'shift-d3';
+            else if (assignment === 'Others') cell.className = 'shift-others';
+            else if (assignment === 'OFF') cell.className = 'shift-off';
+            else if (assignment === 'Leave') cell.className = 'shift-leave';
+            else if (assignment === '') {
+                cell.className = 'shift-empty';
+                cell.textContent = 'Click to set';
+            }
+            
+            const config = weekConfigs[currentWeek];
+            const isHistorical = config && config.isHistorical;
+            
+            if (isAdmin && !isRosterLocked && !isHistorical) {
+                cell.classList.add('editable-cell');
+            }
+        }
+
+        // Week Navigation
+        function changeWeek(weekDelta) {
+            const newWeek = currentWeek + weekDelta;
+            const availableWeeks = Object.keys(weekConfigs).map(Number);
+            
+            if (availableWeeks.includes(newWeek)) {
+                currentWeek = newWeek;
+                const config = weekConfigs[currentWeek];
+                
+                // Set appropriate lock status for different weeks
+                if (config && config.isHistorical) {
+                    isRosterLocked = true;
+                } else if (currentWeek === 1) {
+                    // Week 1 stays locked by default (Ian can unlock if needed)
+                    // Don't change isRosterLocked - keep it as is
+                } else {
+                    // Future weeks start unlocked for admin
+                    isRosterLocked = false;
+                }
+                
+                renderSchedule();
+                updateWeekDisplay();
+                updateLockedState();
+            } else {
+                alert(`Week ${newWeek} is not available.`);
+            }
+        }
+
+        function updateWeekDisplay() {
+            const config = weekConfigs[currentWeek];
+            if (!config) {
+                console.error(`No config for week ${currentWeek}`);
+                return;
+            }
+            
+            document.getElementById('weekDisplay').textContent = `Week ${currentWeek}, ${currentYear}`;
+            document.getElementById('dateRange').textContent = config.displayDate;
+            document.getElementById('teamUpdatesText').textContent = config.teamUpdates;
+            
+            const startDate = new Date(config.startDate);
+            document.getElementById('mondayDate').textContent = formatDate(startDate);
+            document.getElementById('tuesdayDate').textContent = formatDate(addDays(startDate, 1));
+            document.getElementById('wednesdayDate').textContent = formatDate(addDays(startDate, 2));
+            document.getElementById('thursdayDate').textContent = formatDate(addDays(startDate, 3));
+            document.getElementById('fridayDate').textContent = formatDate(addDays(startDate, 4));
+            document.getElementById('saturdayDate').textContent = formatDate(addDays(startDate, 5));
+            document.getElementById('sundayDate').textContent = formatDate(addDays(startDate, 6));
+        }
+
+        function formatDate(date) {
+            const day = date.getDate();
+            const suffix = getDaySuffix(day);
+            const month = date.toLocaleDateString('en-US', { month: 'short' });
+            return `${day}${suffix} ${month}`;
+        }
+
+        function addDays(date, days) {
+            const result = new Date(date);
+            result.setDate(result.getDate() + days);
+            return result;
+        }
+
+        // Admin Functions
+        function lockRoster() {
+            const config = weekConfigs[currentWeek];
+            if (config && config.isHistorical) {
+                alert(`Week ${currentWeek} is a historical reference week and is permanently locked.`);
+                return;
+            }
+            isRosterLocked = true;
+            updateLockedState();
+            alert('Roster locked! All users now have view-only access.');
+            downloadJSON();
+        }
+
+        function unlockRoster() {
+            const config = weekConfigs[currentWeek];
+            if (config && config.isHistorical) {
+                alert(`Week ${currentWeek} is a historical reference week and is permanently locked.`);
+                return;
+            }
+            isRosterLocked = false;
+            updateLockedState();
+            alert('Roster unlocked! Admin can now make changes.');
+        }
+
+        function downloadJSON() {
+            const config = weekConfigs[currentWeek];
+            const jsonData = {
+                scheduleData: {},
+                isRosterLocked: isRosterLocked,
+                currentWeek: currentWeek,
+                currentYear: currentYear,
+                dateRange: config.displayDate,
+                lastSavedTime: new Date().toISOString(),
+                updatedBy: currentUser
+            };
+
+            config.activeUsers.forEach(user => {
+                config.scheduleData[user].forEach((shift, dayIndex) => {
+                    const dayName = days[dayIndex];
+                    jsonData.scheduleData[`${user}-${dayName}`] = shift;
+                });
+            });
+
+            const jsonString = JSON.stringify(jsonData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `roster_week${currentWeek}_${currentYear}_${new Date().getTime()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('JSON file downloaded!');
+        }
+
         function login() {
-            const username = document.getElementById('username').value;
+            const userSelect = document.getElementById('userSelect');
             const password = document.getElementById('password').value;
             const errorMessage = document.getElementById('errorMessage');
-
+            const selectedUser = userSelect.value;
+            
             errorMessage.classList.add('hidden');
-
-            if (username === 'Admin' && password === SYSTEM_CREDENTIALS['Admin']) {
-                // Success
-                document.getElementById('loginPage').classList.add('hidden');
-                document.getElementById('mainApp').classList.remove('hidden');
-                
-                // Store session
-                localStorage.setItem('ct226_session', 'active');
-                
-                // Start matrix animation
-                startMatrix();
+            
+            if (!selectedUser) {
+                showError('Please select a user');
+                return;
+            }
+            
+            if (!password) {
+                showError('Please enter password');
+                return;
+            }
+            
+            if (password === userCredentials[selectedUser]) {
+                currentUser = selectedUser;
+                isAdmin = currentUser === 'Ian';
+                localStorage.setItem('currentUser', currentUser);
+                showMainApp();
             } else {
-                errorMessage.classList.remove('hidden');
+                showError('Invalid password');
             }
         }
 
-        // Logout function
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('hidden');
+        }
+
         function logout() {
-            document.getElementById('mainApp').classList.add('hidden');
-            document.getElementById('loginPage').classList.remove('hidden');
-            document.getElementById('password').value = '';
-            
-            localStorage.removeItem('ct226_session');
-            
-            // Stop matrix animation
-            stopMatrix();
+            localStorage.removeItem('currentUser');
+            showLoginPage();
         }
 
-        // Check for existing session on load
-        function checkSession() {
-            const hasSession = localStorage.getItem('ct226_session');
+        function renderSchedule() {
+            const scheduleBody = document.getElementById('scheduleBody');
+            scheduleBody.innerHTML = '';
             
-            if (hasSession === 'active') {
-                // Resume session
-                document.getElementById('loginPage').classList.add('hidden');
-                document.getElementById('mainApp').classList.remove('hidden');
-                startMatrix();
+            const config = weekConfigs[currentWeek];
+            if (!config) {
+                scheduleBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #666;">No schedule data available for this week</td></tr>';
+                return;
             }
+            
+            const activeUsers = config.activeUsers;
+            
+            activeUsers.forEach(user => {
+                const row = document.createElement('tr');
+                if (user === currentUser) row.classList.add('current-user');
+                
+                const nameCell = document.createElement('td');
+                nameCell.className = 'user-cell';
+                if (user === 'Emma') {
+                    nameCell.innerHTML = user + ' <span class="on-leave">(on leave)</span>';
+                } else {
+                    nameCell.textContent = user;
+                }
+                row.appendChild(nameCell);
+                
+                config.scheduleData[user].forEach((shift, index) => {
+                    const cell = document.createElement('td');
+                    
+                    cell.setAttribute('data-user', user);
+                    cell.setAttribute('data-day', index);
+                    
+                    updateCellAppearance(cell, shift);
+                    
+                    row.appendChild(cell);
+                });
+                
+                scheduleBody.appendChild(row);
+            });
+
+            updateWeekDisplay();
+            updateCellEditability();
+        }
+
+        // [KEEP ALL YOUR EXISTING ANALYTICS FUNCTIONS - NO CHANGES]
+        function showAnalytics() {
+            const modal = document.getElementById('analyticsModal');
+            const title = document.getElementById('analyticsTitle');
+            const content = document.getElementById('analyticsContent');
+            
+            if (isAdmin) {
+                title.textContent = 'Team Analytics - Admin View';
+                content.innerHTML = generateTeamAnalytics();
+            } else {
+                title.textContent = currentUser + "'s Analytics";
+                content.innerHTML = generateUserAnalytics(currentUser);
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function hideAnalytics() {
+            document.getElementById('analyticsModal').classList.remove('active');
+        }
+
+        function showWeeklySummary() {
+            const modal = document.getElementById('weeklySummaryModal');
+            const content = document.getElementById('weeklySummaryContent');
+            content.innerHTML = generateWeeklySummary();
+            modal.classList.add('active');
+        }
+
+        function hideWeeklySummary() {
+            document.getElementById('weeklySummaryModal').classList.remove('active');
+        }
+
+        function showShiftPatterns() {
+            const modal = document.getElementById('shiftPatternsModal');
+            const content = document.getElementById('shiftPatternsContent');
+            content.innerHTML = generateShiftPatterns();
+            modal.classList.add('active');
+        }
+
+        function hideShiftPatterns() {
+            document.getElementById('shiftPatternsModal').classList.remove('active');
+        }
+
+        function showLeaveTracker() {
+            const modal = document.getElementById('leaveTrackerModal');
+            const content = document.getElementById('leaveTrackerContent');
+            content.innerHTML = generateLeaveTracker();
+            modal.classList.add('active');
+        }
+
+        function hideLeaveTracker() {
+            document.getElementById('leaveTrackerModal').classList.remove('active');
+        }
+
+        function generateWeeklySummary() {
+            const config = weekConfigs[currentWeek];
+            let totalShifts = 0;
+            let regionCounts = { Rift: 0, Central: 0, D2: 0, D3: 0, Others: 0 };
+            let dayCoverage = {};
+            
+            days.forEach(day => dayCoverage[day] = { Rift: 0, Central: 0, D2: 0, D3: 0, Others: 0 });
+            
+            config.activeUsers.forEach(user => {
+                config.scheduleData[user].forEach((shift, dayIndex) => {
+                    if (regions.includes(shift)) {
+                        totalShifts++;
+                        regionCounts[shift]++;
+                        dayCoverage[days[dayIndex]][shift]++;
+                    }
+                });
+            });
+
+            const workingStaff = config.activeUsers.filter(user => 
+                config.scheduleData[user].some(shift => regions.includes(shift))
+            ).length;
+
+            return `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">${totalShifts}</div>
+                        <div class="stat-label">Total Shifts</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${workingStaff}/${config.activeUsers.length}</div>
+                        <div class="stat-label">Active Staff</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${Object.values(regionCounts).reduce((a, b) => a + b, 0)}</div>
+                        <div class="stat-label">Region Coverage</div>
+                    </div>
+                </div>
+
+                <h3>Region Distribution</h3>
+                ${Object.entries(regionCounts).map(([region, count]) => `
+                    <div class="region-stats">
+                        <span>${region}:</span>
+                        <span><strong>${count}</strong> shifts</span>
+                    </div>
+                `).join('')}
+
+                <h3>Daily Coverage</h3>
+                ${Object.entries(dayCoverage).map(([day, coverage]) => `
+                    <div class="coverage-item">
+                        <strong>${day}</strong><br>
+                        ${Object.entries(coverage).map(([region, count]) => 
+                            `${region}: ${count}`).join(' • ')}
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        function generateShiftPatterns() {
+            const config = weekConfigs[currentWeek];
+            let userPatterns = {};
+            
+            config.activeUsers.forEach(user => {
+                const shifts = config.scheduleData[user];
+                const pattern = shifts.join(' → ');
+                const regionFrequency = {};
+                
+                shifts.forEach(shift => {
+                    if (regions.includes(shift)) {
+                        regionFrequency[shift] = (regionFrequency[shift] || 0) + 1;
+                    }
+                });
+                
+                userPatterns[user] = {
+                    pattern: pattern,
+                    frequency: regionFrequency,
+                    totalShifts: Object.values(regionFrequency).reduce((a, b) => a + b, 0)
+                };
+            });
+
+            return `
+                <h3>Individual Shift Patterns</h3>
+                ${Object.entries(userPatterns).map(([user, data]) => `
+                    <div class="pattern-item">
+                        <strong>${user}</strong><br>
+                        <small>Pattern: ${data.pattern}</small><br>
+                        <small>Total shifts: ${data.totalShifts}</small><br>
+                        ${Object.entries(data.frequency).map(([region, count]) => 
+                            `<span style="color: #666">${region}: ${count} </span>`).join('')}
+                    </div>
+                `).join('')}
+
+                <h3>Most Common Regions</h3>
+                ${Object.entries(calculateRegionPreferences()).map(([user, preferences]) => `
+                    <div class="metric">
+                        <div class="metric-label">${user}</div>
+                        <div class="metric-value">${preferences.join(', ')}</div>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        function generateLeaveTracker() {
+            const config = weekConfigs[currentWeek];
+            const leaveData = [];
+            
+            const allUsersToCheck = ['Ian', 'Kim', 'Emma', 'Kevo', 'Wendy', 'Janet'];
+            
+            allUsersToCheck.forEach(user => {
+                let leaveDays = 0;
+                let offDays = 0;
+                
+                if (user === 'Emma') {
+                    leaveData.push({
+                        user: user,
+                        leaveDays: 7,
+                        offDays: 0,
+                        status: 'On long-term leave until Feb 2026'
+                    });
+                } else {
+                    const shifts = config.scheduleData[user] || [];
+                    leaveDays = shifts.filter(shift => shift === 'Leave').length;
+                    offDays = shifts.filter(shift => shift === 'OFF').length;
+                    
+                    if (leaveDays > 0 || user === 'Emma') {
+                        leaveData.push({
+                            user: user,
+                            leaveDays: leaveDays,
+                            offDays: offDays,
+                            status: user === 'Emma' ? 'On long-term leave until Feb 2026' : 
+                                   leaveDays > 0 ? `On leave (${leaveDays} days)` : 'Available'
+                        });
+                    }
+                }
+            });
+
+            return `
+                <h3>Current Leave Status</h3>
+                ${leaveData.map(data => `
+                    <div class="leave-item">
+                        <strong>${data.user}</strong><br>
+                        <span>${data.status}</span><br>
+                        <small>Leave days: ${data.leaveDays} • OFF days: ${data.offDays}</small>
+                    </div>
+                `).join('')}
+
+                <h3>Team Availability</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">${leaveData.filter(d => d.leaveDays > 0).length}</div>
+                        <div class="stat-label">On Leave</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${config.activeUsers.length}</div>
+                        <div class="stat-label">Available Staff</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function calculateRegionPreferences() {
+            const config = weekConfigs[currentWeek];
+            let preferences = {};
+            config.activeUsers.forEach(user => {
+                const regionCount = {};
+                config.scheduleData[user].forEach(shift => {
+                    if (regions.includes(shift)) {
+                        regionCount[shift] = (regionCount[shift] || 0) + 1;
+                    }
+                });
+                preferences[user] = Object.entries(regionCount)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 2)
+                    .map(([region]) => region);
+            });
+            return preferences;
+        }
+
+        function generateUserAnalytics(user) {
+            const config = weekConfigs[currentWeek];
+            const shifts = config.scheduleData[user] || [];
+            const workingDays = shifts.filter(s => !['OFF', 'Leave'].includes(s)).length;
+            const offDays = shifts.filter(s => s === 'OFF').length;
+            const leaveDays = shifts.filter(s => s === 'Leave').length;
+            
+            return `
+                <div class="metric">
+                    <div class="metric-label">Working Days</div>
+                    <div class="metric-value">${workingDays}</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">OFF Days</div>
+                    <div class="metric-value">${offDays}</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Leave Days</div>
+                    <div class="metric-value">${leaveDays}</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Total Scheduled</div>
+                    <div class="metric-value">${workingDays + offDays + leaveDays} days</div>
+                </div>
+            `;
+        }
+
+        function generateTeamAnalytics() {
+            const config = weekConfigs[currentWeek];
+            let html = '';
+            
+            config.activeUsers.forEach(user => {
+                const shifts = config.scheduleData[user];
+                const workingDays = shifts.filter(s => !['OFF', 'Leave'].includes(s)).length;
+                
+                html += `
+                    <div class="metric">
+                        <div class="metric-label">${user}</div>
+                        <div class="metric-value">${workingDays} working days</div>
+                    </div>
+                `;
+            });
+            
+            return html;
+        }
+
+        // Standing Orders Functions
+        function showStandingOrders() {
+            document.getElementById('standingOrdersModal').classList.add('active');
+        }
+
+        function hideStandingOrders() {
+            document.getElementById('standingOrdersModal').classList.remove('active');
         }
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            checkSession();
-            
-            // Enter key to login
-            document.getElementById('password').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    login();
+        document.addEventListener('DOMContentLoaded', initializePage);
+
+        // Close modals with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideAnalytics();
+                hideStandingOrders();
+                hideWeeklySummary();
+                hideShiftPatterns();
+                hideLeaveTracker();
+            }
+        });
+
+        // Close modals when clicking outside
+        const modals = ['analyticsModal', 'standingOrdersModal', 'weeklySummaryModal', 'shiftPatternsModal', 'leaveTrackerModal'];
+        modals.forEach(modalId => {
+            document.getElementById(modalId).addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
                 }
             });
-            
-            // Auto-resize matrix on window resize
-            window.addEventListener('resize', function() {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-            });
+        });
+
+        // Enter key to login
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') login();
         });
     </script>
 </body>
