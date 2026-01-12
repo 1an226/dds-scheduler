@@ -491,6 +491,18 @@
             align-items: center;
             justify-content: center;
         }
+
+        /* Month Indicators */
+        .month-indicator {
+            color: #e74c3c;
+            font-weight: bold;
+            margin-left: 5px;
+            font-size: 14px;
+        }
+
+        .january-week {
+            border-left: 4px solid #e74c3c !important;
+        }
     </style>
 </head>
 <body>
@@ -561,6 +573,7 @@
                     <div class="date-range" id="dateRange">8th Dec - 14th Dec 2025</div>
                 </div>
                 <button class="btn" onclick="changeWeek(1)">Next &gt;</button>
+                <button class="btn" onclick="jumpToJanuary()" style="background-color: #e74c3c;">Jump to January 2026</button>
             </div>
             <div>
                 <button class="btn summary-btn" onclick="showWeeklySummary()">Weekly Summary</button>
@@ -775,7 +788,7 @@
             };
         }
 
-        // SIMPLIFIED: Generate week configs
+        // SIMPLIFIED: Generate week configs WITH JANUARY 2026
         const generateWeekConfigs = () => {
             const configs = {};
             
@@ -816,10 +829,73 @@
                 scheduleData: getEmptySchedule()
             };
 
-            // Add some placeholder historical weeks
-            for (let week = 4; week <= 6; week++) {
+            // Weeks 4-5: December weeks
+            const decWeeksStart = new Date(currentWeekStart);
+            for (let week = 4; week <= 5; week++) {
+                decWeeksStart.setDate(decWeeksStart.getDate() + 7);
+                configs[week] = {
+                    startDate: new Date(decWeeksStart).toISOString().split('T')[0],
+                    endDate: new Date(decWeeksStart.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    displayDate: getDateRangeDisplay(decWeeksStart),
+                    teamUpdates: 'December week - Schedule pending',
+                    activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'],
+                    scheduleData: getEmptySchedule()
+                };
+            }
+
+            // WEEKS 6-9: JANUARY 2026 WEEKS
+            // Week 6: First week of January 2026 (Jan 5th - Jan 11th)
+            const janWeek6Start = new Date(2026, 0, 5); // January 5, 2026
+            configs[6] = {
+                startDate: new Date(janWeek6Start).toISOString().split('T')[0],
+                endDate: new Date(janWeek6Start.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                displayDate: getDateRangeDisplay(janWeek6Start),
+                teamUpdates: 'January 2026 - First week of the year',
+                activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'],
+                scheduleData: getEmptySchedule(),
+                isJanuary: true
+            };
+
+            // Week 7: Second week of January 2026 (Jan 12th - Jan 18th)
+            const janWeek7Start = new Date(2026, 0, 12);
+            configs[7] = {
+                startDate: new Date(janWeek7Start).toISOString().split('T')[0],
+                endDate: new Date(janWeek7Start.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                displayDate: getDateRangeDisplay(janWeek7Start),
+                teamUpdates: 'January 2026 - Second week',
+                activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'],
+                scheduleData: getEmptySchedule(),
+                isJanuary: true
+            };
+
+            // Week 8: Third week of January 2026 (Jan 19th - Jan 25th)
+            const janWeek8Start = new Date(2026, 0, 19);
+            configs[8] = {
+                startDate: new Date(janWeek8Start).toISOString().split('T')[0],
+                endDate: new Date(janWeek8Start.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                displayDate: getDateRangeDisplay(janWeek8Start),
+                teamUpdates: 'January 2026 - Third week',
+                activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'],
+                scheduleData: getEmptySchedule(),
+                isJanuary: true
+            };
+
+            // Week 9: Fourth week of January 2026 (Jan 26th - Feb 1st)
+            const janWeek9Start = new Date(2026, 0, 26);
+            configs[9] = {
+                startDate: new Date(janWeek9Start).toISOString().split('T')[0],
+                endDate: new Date(janWeek9Start.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                displayDate: getDateRangeDisplay(janWeek9Start),
+                teamUpdates: 'January 2026 - Fourth week (spills into February)',
+                activeUsers: ['Ian', 'Kim', 'Kevo', 'Wendy', 'Janet'],
+                scheduleData: getEmptySchedule(),
+                isJanuary: true
+            };
+
+            // Add some placeholder historical weeks (for completeness)
+            for (let week = 10; week <= 12; week++) {
                 const histStart = new Date(currentWeekStart);
-                histStart.setDate(histStart.getDate() - (week * 7));
+                histStart.setDate(histStart.getDate() - ((week + 3) * 7));
                 configs[week] = {
                     startDate: new Date(histStart).toISOString().split('T')[0],
                     endDate: new Date(histStart.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -1018,7 +1094,11 @@
                 return;
             }
             
-            document.getElementById('weekDisplay').textContent = `Week ${currentWeek}, ${currentYear}`;
+            // Update week display with month indicator
+            const monthIndicator = config.isJanuary ? ' <span class="month-indicator">(January 2026)</span>' : 
+                                  currentWeek <= 5 ? ' <span class="month-indicator">(December 2025)</span>' : '';
+            
+            document.getElementById('weekDisplay').innerHTML = `Week ${currentWeek}, ${currentYear}${monthIndicator}`;
             document.getElementById('dateRange').textContent = config.displayDate;
             document.getElementById('teamUpdatesText').textContent = config.teamUpdates;
             
@@ -1043,6 +1123,27 @@
             const result = new Date(date);
             result.setDate(result.getDate() + days);
             return result;
+        }
+
+        // Quick jump to January 2026 weeks
+        function jumpToJanuary() {
+            // Find the first January week (week 6)
+            currentWeek = 6;
+            const config = weekConfigs[currentWeek];
+            
+            // Future weeks (including January) should be editable for admin
+            if (isAdmin) {
+                isRosterLocked = false;
+            }
+            
+            renderSchedule();
+            updateWeekDisplay();
+            updateLockedState();
+            
+            // Show a notification
+            if (config) {
+                alert(`Jumped to Week ${currentWeek}: ${config.displayDate} (January 2026)`);
+            }
         }
 
         // Admin Functions
@@ -1156,6 +1257,11 @@
             activeUsers.forEach(user => {
                 const row = document.createElement('tr');
                 if (user === currentUser) row.classList.add('current-user');
+                
+                // Add January styling if this is a January week
+                if (config.isJanuary) {
+                    row.classList.add('january-week');
+                }
                 
                 const nameCell = document.createElement('td');
                 nameCell.className = 'user-cell';
